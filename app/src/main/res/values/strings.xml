@@ -676,6 +676,8 @@ E.g. <b>META</b> for <i>META key</i>, \n
     <string name="new_folder">New Folder</string>
     <string name="view_style">View Style</string>
     <string name="there_already_file_with_that_name">There is already a file with that name</string>
+    <string name="confirm_overwrite">Confirm Overwrite</string>
+    <string name="file_or_directory_already_exists_overwrite">A file or directory with the same name already exists. Do you want to overwrite it?</string>
     <string name="do_you_want_to_remove_this_file">Do you want to remove this file?</string>
     <string name="documents">Documents</string>
     <string name="copying_files">Copying Files...</string>

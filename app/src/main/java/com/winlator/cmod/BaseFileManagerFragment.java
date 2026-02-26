@@ -1,9 +1,11 @@
 package com.winlator.cmod;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
@@ -161,26 +163,65 @@ public abstract class BaseFileManagerFragment<T> extends Fragment {
             return;
         }
         final FragmentActivity activity = getActivity();
+
+        // Check if trying to paste in the same directory
         for (File file : clipboard.files) {
-            File targetFile = new File(clipboard.targetDir, file.getName());
-            if (targetFile.exists()) {
-                AppUtils.showToast(activity, R.string.there_already_file_with_that_name);
+            File parentDir = file.getParentFile();
+            if (parentDir != null && parentDir.equals(clipboard.targetDir)) {
+                // File is in the same directory as target
+                if (clipboard.cutMode) {
+                    AppUtils.showToast(activity, R.string.you_cannot_paste_files_here);
+                } else {
+                    AppUtils.showToast(activity, R.string.there_already_file_with_that_name);
+                }
                 return;
             }
         }
+
+        // Check if any file or directory already exists
+        for (File file : clipboard.files) {
+            File targetFile = new File(clipboard.targetDir, file.getName());
+            if (targetFile.exists()) {
+                // Show overwrite confirmation dialog
+                showOverwriteConfirmationDialog();
+                return;
+            }
+        }
+
+        // No conflicts, proceed with paste
+        performPaste();
+    }
+
+    private void showOverwriteConfirmationDialog() {
+        new AlertDialog.Builder(getActivity())
+                .setTitle(R.string.confirm_overwrite)
+                .setMessage(R.string.file_or_directory_already_exists_overwrite)
+                .setPositiveButton(getString(R.string.ok), (dialog, which) -> {
+                    performPaste();
+                })
+                .setNegativeButton(getString(R.string.cancel), null)
+                .show();
+    }
+
+    private void performPaste() {
+        final FragmentActivity activity = getActivity();
         preloaderDialog.showOnUiThread(R.string.copying_files);
-        Executors.newSingleThreadExecutor().execute(new Runnable() { 
+        Executors.newSingleThreadExecutor().execute(new Runnable() {
             @Override // java.lang.Runnable
             public final void run() {
                 for (File originFile : clipboard.files) {
                     if (originFile.exists()) {
                         File targetFile = new File(clipboard.targetDir, originFile.getName());
+                        // Delete target if it exists (for overwrite)
+                        if (targetFile.exists()) {
+                            FileUtils.delete(targetFile);
+                        }
                         if (FileUtils.copy(originFile, targetFile) && clipboard.cutMode) {
                             FileUtils.delete(originFile);
                         }
                     }
                 }
-                activity.runOnUiThread(new Runnable() { 
+                activity.runOnUiThread(new Runnable() {
                     @Override // java.lang.Runnable
                     public final void run() {
                         clearClipboard();

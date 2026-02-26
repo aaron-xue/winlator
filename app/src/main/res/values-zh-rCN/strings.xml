@@ -688,6 +688,8 @@
     <string name="add_shortcut_content">为了创建游戏快捷方式，请开启桌面快捷方式权限</string>
     <string name="add_shortcut_success">游戏快捷方式创建成功</string>
     <string name="file_manager">文件管理器</string>
+    <string name="confirm_overwrite">确认覆盖</string>
+    <string name="file_or_directory_already_exists_overwrite">文件或目录已存在，是否覆盖？</string>
     <string name="size">大小</string>
     <string name="items">项</string>
     <string name="drive">磁盘</string>
