@@ -654,8 +654,11 @@ public class ControlElement {
 
             if (type == Type.STICK) {
                 if (currentPosition == null) currentPosition = new PointF();
-                currentPosition.x = boundingBox.left + deltaX * radius + radius;
-                currentPosition.y = boundingBox.top + deltaY * radius + radius;
+                // Update current position to follow finger directly, but clamp within bounding box
+                float clampedX = Math.max(boundingBox.left, Math.min(boundingBox.right, x));
+                float clampedY = Math.max(boundingBox.top, Math.min(boundingBox.bottom, y));
+                currentPosition.x = clampedX;
+                currentPosition.y = clampedY;
                 final boolean[] states = {deltaY <= -STICK_DEAD_ZONE, deltaX >= STICK_DEAD_ZONE, deltaY >= STICK_DEAD_ZONE, deltaX <= -STICK_DEAD_ZONE};
 
                 for (byte i = 0; i < 4; i++) {
