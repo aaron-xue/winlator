@@ -125,7 +125,15 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             navigationView.setCheckedItem(R.id.main_menu_input_controls);
         } else {
             int selectedMenuItemId = intent.getIntExtra("selected_menu_item_id", 0);
-            int menuItemId = selectedMenuItemId > 0 ? selectedMenuItemId : R.id.main_menu_containers;
+            int menuItemId;
+
+            // If no specific menu item is selected, check for shortcuts first
+            if (selectedMenuItemId == 0) {
+                List<com.winlator.cmod.container.Shortcut> shortcuts = containerManager.loadShortcuts();
+                menuItemId = !shortcuts.isEmpty() ? R.id.main_menu_shortcuts : R.id.main_menu_containers;
+            } else {
+                menuItemId = selectedMenuItemId;
+            }
 
             actionBar.setHomeAsUpIndicator(R.drawable.icon_action_bar_menu);
             onNavigationItemSelected(navigationView.getMenu().findItem(menuItemId));
@@ -137,12 +145,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R && !Environment.isExternalStorageManager()) {
                 showAllFilesAccessDialog();
-            }
-
-            if (Build.VERSION.SDK_INT >= 33) {
-                if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
-                    requestPermissions(new String[]{Manifest.permission.POST_NOTIFICATIONS}, 0);
-                }
             }
         }
     }
@@ -334,12 +336,12 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         FragmentManager fragmentManager = getSupportFragmentManager();
         if (reverse) {
             fragmentManager.beginTransaction()
-                    .setCustomAnimations(R.anim.slide_in_down, R.anim.slide_out_up)  // Reverse animation
+                    .setCustomAnimations(R.anim.fade_in, R.anim.fade_out)
                     .replace(R.id.FLFragmentContainer, fragment)
                     .commit();
         } else {
             fragmentManager.beginTransaction()
-                    .setCustomAnimations(R.anim.slide_in_up, R.anim.slide_out_down)  // Forward animation
+                    .setCustomAnimations(R.anim.fade_in, R.anim.fade_out)
                     .replace(R.id.FLFragmentContainer, fragment)
                     .commit();
         }
