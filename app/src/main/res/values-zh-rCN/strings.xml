@@ -475,7 +475,7 @@
     <string name="enable_touchscreen_timeout">超时隐藏按键 (重启生效)</string>
     <string name="enable_touchscreen_haptics">启用按键振动</string>
     <string name="disable_xinput_for_shortcut">禁用 Xinput (实现键鼠独占控制)</string>
-    <string name="disable_mouse_for_shortcut">禁用实体鼠标</string>
+    <string name="capture_external_pointer">使用外接鼠标</string>
     <string name="fullscreen_stretched">全屏拉伸</string>
     <string name="export_container">备份容器</string>
     <string name="exporting_container">正在导出容器...</string>

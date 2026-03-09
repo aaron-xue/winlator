@@ -236,7 +236,7 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
         preloaderDialog = new PreloaderDialog(this);
         preferences = PreferenceManager.getDefaultSharedPreferences(this);
 
-        cursorLock = preferences.getBoolean("cursor_lock", false);
+        cursorLock = preferences.getBoolean("cursor_lock", true);
 
         // Check for Dark Mode
         isDarkMode = preferences.getBoolean("dark_mode", false);
@@ -907,20 +907,10 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
     public void onWindowFocusChanged(boolean hasFocus) {
         super.onWindowFocusChanged(hasFocus);
 
-        if (hasFocus && cursorLock) {
+        if (hasFocus && cursorLock)
             touchpadView.requestPointerCapture();
-            touchpadView.setOnCapturedPointerListener(new View.OnCapturedPointerListener() {
-                @Override
-                public boolean onCapturedPointer(View view, MotionEvent event) {
-                    handleCapturedPointer(event);
-                    return true;
-                }
-            });
-        }
-        else if (!hasFocus) {
+        else if (!hasFocus)
             touchpadView.releasePointerCapture();
-            touchpadView.setOnCapturedPointerListener(null);
-        }
     }
 
     private void extractInputDLLs() {
@@ -1139,6 +1129,16 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
         touchpadView.setFourFingersTapCallback(() -> {
             if (!drawerLayout.isDrawerOpen(GravityCompat.START)) drawerLayout.openDrawer(GravityCompat.START);
         });
+        View.OnCapturedPointerListener capturedPointerListener = new View.OnCapturedPointerListener() {
+        	@Override
+            public boolean onCapturedPointer(View view, MotionEvent event) {
+            	handleCapturedPointer(event);
+                return true;
+            }
+        };
+        touchpadView.setOnCapturedPointerListener(cursorLock ? capturedPointerListener : null);
+        touchpadView.setFocusable(true);
+        touchpadView.setFocusableInTouchMode(true);
         rootView.addView(touchpadView);
 
         inputControlsView = new InputControlsView(this, timeoutHandler, hideControlsRunnable);
@@ -1457,8 +1457,6 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
             TarCompressorUtils.extract(TarCompressorUtils.Type.ZSTD, this, "graphics_driver/wrapper" + ".tzst", rootDir);
             TarCompressorUtils.extract(TarCompressorUtils.Type.ZSTD, this, "layers" + ".tzst", rootDir);
             TarCompressorUtils.extract(TarCompressorUtils.Type.ZSTD, this, "graphics_driver/extra_libs" + ".tzst", rootDir);
-            if (wineInfo.isArm64EC() && !GPUInformation.getRenderer(null,null).contains("Mali"))
-                TarCompressorUtils.extract(TarCompressorUtils.Type.ZSTD, this, "graphics_driver/zink_dlls" + ".tzst", new File(rootDir, imageFs.WINEPREFIX + "/drive_c/windows"));
         }
 
         if (adrenoToolsDriverId != "System") {
