@@ -500,7 +500,7 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
             @Override
             public void onModifyWindowProperty(Window window, Property property) {
                 String name = (property != null) ? property.nameAsString() : "";
-                Log.d("XServerDisplayActivity", "onModifyWindowProperty: Changed property " + name + " for window " + window.id);
+                Log.d("XServerDisplayActivity", "onModifyWindowProperty: Changed property " + name + " for window " + window.id+" name:"+window.getName());
                 changeFrameRatingVisibility(window, property);
             }    
 
