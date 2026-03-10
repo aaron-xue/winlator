@@ -300,10 +300,6 @@
     <string name="startup_selection">启动选择</string>
     <string name="wine_debug_channel">Wine调试通道</string>
     <string name="game_controller">游戏控制器</string>
-    <string name="as_button">非线性</string>
-    <string name="as_axis">线性</string>
-    <string name="both">两者</string>
-    <string name="trigger_type">扳机键类型</string>
     <string name="experimental">实验性的</string>
     <string name="glibc_exp_edition">Glibc实验版</string>
     <string name="enabled_async">启用异步</string>
@@ -434,12 +430,6 @@
     <string name="startup_essential">基本 (仅加载基本服务)</string>
     <string name="startup_aggressive">激进 (启动时停止服务)</string>
     <string name="lc_all" translatable="false">LC_ALL</string>
-    <string name="help_trigger_mode"><![CDATA[
-        这个选项取决于你正在使用的 <i><b>物理控制器</b></i> 。<br/><br/>
-        <i><b>线性</b></i>: 如果你的控制器的扳机键是线性的（具有一定行程），请勾选此选项。<br/><br/>
-        <i><b>非线性</b></i>: 如果你的控制器的扳机键是按钮（类似一个开关），请勾选此选项。<br/><br/>
-        <i><b>注意</b></i>: 如果为线性扳机勾选了<i><b>按钮</b></i> ，则映射时会丢弃线性数据。<br/>
-    ]]></string>
     <string name="toggle_orientation">切换方向</string>
     <string name="help_file_provider"><![CDATA[
         <i><b>文件提供器</b></i> 允许通过安卓文件管理器访问Winlator的内部数据。<br/><br/>
