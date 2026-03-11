@@ -686,9 +686,5 @@ E.g. <b>META</b> for <i>META key</i>, \n
     <string name="add_to_desktop">Add to desktop</string>
     <string name="information">Information</string>
     <string name="enable_sdl2">Enable SDL2 Compatibility</string>
-    <string name="help_sdl2"><![CDATA[
-        A cross-platform multimedia development library primarily designed to provide low-level hardware access to <i><b>graphics, sound, and input devices(keyboard, mouse, gamepad, etc.)</b></i><br/><br/>
-        addressing issues such as gamepad unrecognition in certain games like Hades
-    ]]></string>
     <string name="vibrate">Vibration</string>
 </resources>

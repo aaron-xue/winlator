@@ -347,7 +347,6 @@ public class ContainerDetailFragment extends Fragment {
         final CheckBox cbEnableDInput = view.findViewById(R.id.CBEnableDInput);
         final View btHelpXInput = view.findViewById(R.id.BTXInputHelp);
         final View btHelpDInput = view.findViewById(R.id.BTDInputHelp);
-        final View BTSDL2Help = view.findViewById(R.id.BTSDL2Help);
 
         // Check if we are in edit mode to set input type accordingly
         int inputType = isEditMode() ? container.getInputType() : WinHandler.DEFAULT_INPUT_TYPE;
@@ -370,7 +369,6 @@ public class ContainerDetailFragment extends Fragment {
 
         btHelpXInput.setOnClickListener(v -> AppUtils.showHelpBox(context, v, R.string.help_xinput));
         btHelpDInput.setOnClickListener(v -> AppUtils.showHelpBox(context, v, R.string.help_dinput));
-        BTSDL2Help.setOnClickListener(v -> AppUtils.showHelpBox(context, v, R.string.help_sdl2));
 
         final EditText etLC_ALL = view.findViewById(R.id.ETlcall);
         Locale systemLocal = Locale.getDefault();
