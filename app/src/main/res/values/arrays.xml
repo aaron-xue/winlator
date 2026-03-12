@@ -23,7 +23,7 @@
     </string-array>
     <string-array name="wrapper_graphics_driver_version_entries">
         <item>System</item>
-        <item>turnip_Jan-22-2026_8g2_patched</item>
+        <item>turnip_Mar-12-2026_b97a1e6_patched</item>
     </string-array>
     <string-array name="audio_driver_entries">
         <item>ALSA</item>
