@@ -452,7 +452,9 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
                     preloaderDialog.closeOnUiThread();
                     winStarted[0] = true;
                 }
-                if (frameRatingWindowId == window.id) frameRating.update();
+                if(container.isShowFPS()){
+                    if (frameRatingWindowId == window.id) frameRating.update();
+                }
             }
            
             @Override
@@ -460,22 +462,26 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
                 // Log the class name of the mapped window
                 Log.d("XServerDisplayActivity", "onMapWindow: Mapping window: " + window.getClassName());
                 assignTaskAffinity(window);
-                changeFrameRatingVisibility(window, true);
+                if(container.isShowFPS()){
+                    changeFrameRatingVisibility(window, true);
+                }
             }
 
             @Override
             public void onModifyWindowProperty(Window window, Property property) {
-                String name = (property != null) ? property.nameAsString() : "";
-                Log.d("XServerDisplayActivity", "onModifyWindowProperty: Changed property " + name + " for window " + window.id+" name:"+window.getName());
-                if (property.nameAsString().contains("_MESA_DRV_ENGINE_NAME")) {
-                    runOnUiThread(() -> frameRating.setRenderer(property.toString()));
+                if(container.isShowFPS()){
+                    if (property.nameAsString().contains("_MESA_DRV_ENGINE_NAME")) {
+                        runOnUiThread(() -> frameRating.setRenderer(property.toString()));
+                    }
                 }
             }    
 
             @Override
             public void onDestroyWindow(Window window) {
                 Log.d("XServerDisplayActivity", "onDestroyWindow: Destroying window " + window.getClassName());
-                changeFrameRatingVisibility(window, false);
+                if(container.isShowFPS()){
+                    changeFrameRatingVisibility(window, false);
+                }
             }
         });
 

@@ -80,11 +80,6 @@ public class FrameRating extends FrameLayout implements Runnable {
         addView(view);
     }
 
-    @Override // android.view.ViewGroup, android.view.View
-    protected void onAttachedToWindow() {
-        post(this);
-    }
-
     private short calculateMaxClockSpeed() {
         int numProcessors = Runtime.getRuntime().availableProcessors();
         short maxSpeed = 0;
