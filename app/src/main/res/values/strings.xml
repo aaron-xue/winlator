@@ -71,6 +71,7 @@
     <string name="toggle_switch">Toggle Switch</string>
     <string name="profile_exported_to">Profile exported to</string>
     <string name="unable_to_import_profile">Unable to import profile</string>
+    <string name="container_base_info">BaseInfo</string>
     <string name="wine_configuration">Wine Configuration</string>
     <string name="registry_keys">Registry Keys</string>
     <string name="csmt">CSMT (Command Stream Multi-Thread)</string>

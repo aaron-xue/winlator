@@ -23,10 +23,11 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:textStyle="bold"
-            android:textSize="13dp"
+            android:textSize="10sp"
             android:textColor="#A12650"
             android:includeFontPadding="false"
-            android:maxLines="1" />
+            android:maxLines="1"
+            android:fontFamily="monospace" />
     </LinearLayout>
     <LinearLayout
         android:layout_width="85dp"
@@ -39,11 +40,12 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:textStyle="bold"
-            android:textSize="13dp"
+            android:textSize="10sp"
             android:text="CPU:"
             android:textColor="#AB9231"
             android:includeFontPadding="false"
-            android:maxLines="1" />
+            android:maxLines="1"
+            android:fontFamily="monospace" />
 
         <TextView
             android:id="@+id/TVCPU"
@@ -51,10 +53,11 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:textStyle="bold"
-            android:textSize="13dp"
+            android:textSize="10sp"
             android:textColor="#ffffff"
             android:includeFontPadding="false"
-            android:maxLines="1" />
+            android:maxLines="1"
+            android:fontFamily="monospace" />
     </LinearLayout>
 
     <LinearLayout
@@ -68,11 +71,12 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:textStyle="bold"
-            android:textSize="13dp"
+            android:textSize="10sp"
             android:text="RAM:"
             android:textColor="#43B7EA"
             android:includeFontPadding="false"
-            android:maxLines="1"/>
+            android:maxLines="1"
+            android:fontFamily="monospace"/>
 
         <TextView
             android:id="@+id/TVRAM"
@@ -80,10 +84,11 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:textStyle="bold"
-            android:textSize="13dp"
+            android:textSize="10sp"
             android:textColor="#ffffff"
             android:includeFontPadding="false"
-            android:maxLines="1" />
+            android:maxLines="1"
+            android:fontFamily="monospace" />
     </LinearLayout>
 
     <LinearLayout
@@ -97,11 +102,12 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:textStyle="bold"
-            android:textSize="13dp"
+            android:textSize="10sp"
             android:text="TMP:"
             android:textColor="#BB2F39"
             android:includeFontPadding="false"
-            android:maxLines="1" />
+            android:maxLines="1" 
+            android:fontFamily="monospace"/>
 
         <TextView
             android:id="@+id/TVTMP"
@@ -109,10 +115,11 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:textStyle="bold"
-            android:textSize="13dp"
+            android:textSize="10sp"
             android:textColor="#ffffff"
             android:includeFontPadding="false"
-            android:maxLines="1" />
+            android:maxLines="1"
+            android:fontFamily="monospace" />
     </LinearLayout>
     
     <LinearLayout
@@ -126,11 +133,12 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:textStyle="bold"
-            android:textSize="13dp"
+            android:textSize="10sp"
             android:text="POW:"
             android:textColor="#734797"
             android:includeFontPadding="false"
-            android:maxLines="1" />
+            android:maxLines="1"
+            android:fontFamily="monospace" />
 
         <TextView
             android:id="@+id/TVPOWER"
@@ -138,10 +146,11 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:textStyle="bold"
-            android:textSize="13dp"
+            android:textSize="10sp"
             android:textColor="#ffffff"
             android:includeFontPadding="false"
-            android:maxLines="1" />
+            android:maxLines="1"
+            android:fontFamily="monospace" />
     </LinearLayout>
     <LinearLayout
         android:layout_width="70dp"
@@ -154,11 +163,12 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:textStyle="bold"
-            android:textSize="13dp"
+            android:textSize="10sp"
             android:text="FPS:"
             android:textColor="#DFEF5D"
             android:includeFontPadding="false"
-            android:maxLines="1" />
+            android:maxLines="1"
+            android:fontFamily="monospace" />
 
         <TextView
             android:id="@+id/TVFPS"
@@ -166,10 +176,11 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:textStyle="bold"
-            android:textSize="13dp"
+            android:textSize="10sp"
             android:textColor="#ffffff"
             android:includeFontPadding="false"
-            android:maxLines="1" />
+            android:maxLines="1"
+            android:fontFamily="monospace" />
     </LinearLayout>
     <LinearLayout
         android:layout_width="35dp"
@@ -183,9 +194,10 @@
             android:layout_weight="1"
             android:id="@+id/TVTIME"
             android:textStyle="bold"
-            android:textSize="13dp"
+            android:textSize="10sp"
             android:textColor="#72EC11"
             android:includeFontPadding="false"
-            android:maxLines="1" />
+            android:maxLines="1"
+            android:fontFamily="monospace" />
     </LinearLayout>
 </LinearLayout>

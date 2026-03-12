@@ -71,6 +71,7 @@
     <string name="toggle_switch">长按模式</string>
     <string name="profile_exported_to">配置文件导出至</string>
     <string name="unable_to_import_profile">无法导入配置文件</string>
+    <string name="container_base_info">基本信息</string>
     <string name="wine_configuration">Wine配置</string>
     <string name="registry_keys">注册表项</string>
     <string name="csmt">CSMT (多线程开关)</string>

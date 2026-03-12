@@ -460,19 +460,22 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
                 // Log the class name of the mapped window
                 Log.d("XServerDisplayActivity", "onMapWindow: Mapping window: " + window.getClassName());
                 assignTaskAffinity(window);
+                changeFrameRatingVisibility(window, true);
             }
 
             @Override
             public void onModifyWindowProperty(Window window, Property property) {
                 String name = (property != null) ? property.nameAsString() : "";
                 Log.d("XServerDisplayActivity", "onModifyWindowProperty: Changed property " + name + " for window " + window.id+" name:"+window.getName());
-                changeFrameRatingVisibility(window, property);
+                if (property.nameAsString().contains("_MESA_DRV_ENGINE_NAME")) {
+                    runOnUiThread(() -> frameRating.setRenderer(property.toString()));
+                }
             }    
 
             @Override
             public void onDestroyWindow(Window window) {
                 Log.d("XServerDisplayActivity", "onDestroyWindow: Destroying window " + window.getClassName());
-                changeFrameRatingVisibility(window, null);
+                changeFrameRatingVisibility(window, false);
             }
         });
 
@@ -1142,9 +1145,9 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
             startTouchscreenTimeout();
         }
 
-        if (container != null && container.isShowFPS()) {
+        if (container != null ) {
             frameRating = new FrameRating(this, graphicsDriverConfig);
-            frameRating.setVisibility(View.GONE);
+            frameRating.setVisibility(container.isShowFPS()?View.VISIBLE:View.GONE);
             rootView.addView(frameRating);
         }
 
@@ -1853,25 +1856,18 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
         }
     }
 
-    private void changeFrameRatingVisibility(Window window, Property property) {
+    private void changeFrameRatingVisibility(Window window, boolean visibility) {
         if (frameRating == null) return;
-
-        if (property != null) {
-            if (frameRatingWindowId == -1 && property.nameAsString().contains("_MESA_DRV")) {
-                frameRatingWindowId = window.id;
-                Log.d("XServerDisplayActivity", "Showing hud for Window " + window.getName());
-                frameRating.update();
-            }
-            if (property.nameAsString().contains("_MESA_DRV_ENGINE_NAME")) {
-                runOnUiThread(() -> frameRating.setRenderer(property.toString()));
-            }
+        if (visibility) {
+            frameRatingWindowId = window.id;
+            Log.d("XServerDisplayActivity", "Showing hud for Window " + window.getName());
+            frameRating.update();
+            return;
         }
-        else if (frameRatingWindowId != -1) {
-            frameRatingWindowId = -1;
-            Log.d("XServerDisplayActivity", "Hiding hud for Window " + window.getName());
-            runOnUiThread(() -> frameRating.setVisibility(View.GONE));
-            runOnUiThread(() -> frameRating.reset());
-        }
+        frameRatingWindowId = -1;
+        Log.d("XServerDisplayActivity", "Hiding hud for Window " + window.getName());
+        runOnUiThread(() -> frameRating.setVisibility(View.GONE));
+        runOnUiThread(() -> frameRating.reset());
     }
 
     public String getScreenEffectProfile() {

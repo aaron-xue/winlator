@@ -253,7 +253,7 @@ public class ShortcutSettingsDialog extends ContentDialog {
 
         final EnvVarsView envVarsView = createEnvVarsTab();
 
-        AppUtils.setupTabLayout(getContentView(), R.id.TabLayout, R.id.LLTabWinComponents, R.id.LLTabEnvVars, R.id.LLTabAdvanced);
+        AppUtils.setupTabLayout(getContentView(), R.id.TabLayout,R.id.LLTabbaseInfo, R.id.LLTabWinComponents, R.id.LLTabEnvVars, R.id.LLTabAdvanced);
 
         TabLayout tabLayout = findViewById(R.id.TabLayout);
 
