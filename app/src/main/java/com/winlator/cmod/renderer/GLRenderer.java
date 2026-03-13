@@ -6,7 +6,7 @@ import android.graphics.BitmapFactory;
 import android.opengl.GLES20;
 import android.opengl.GLSurfaceView;
 import android.util.Log;
-
+import org.apache.commons.compress.archivers.tar.TarConstants;
 import com.winlator.cmod.R;
 import com.winlator.cmod.XrActivity;
 import com.winlator.cmod.math.Mathf;
@@ -108,9 +108,17 @@ public class GLRenderer implements GLSurfaceView.Renderer, WindowManager.OnWindo
             fullscreen = !fullscreen;
             toggleFullscreen = false;
             viewportNeedsUpdate = true;
-
         }
-
+        // Apply all the effects using EffectComposer
+        if (effectComposer!=null && effectComposer.hasEffects() && surfaceWidth > 0 && surfaceHeight > 0) {
+            try {
+                effectComposer.render();
+                return;
+            } catch (Exception e) {
+                drawFrame();
+                return;
+            }
+        }
         drawFrame();
     }
 
@@ -181,11 +189,6 @@ public class GLRenderer implements GLSurfaceView.Renderer, WindowManager.OnWindo
             GLES20.glDisable(GLES20.GL_SCISSOR_TEST);
         }
 
-        // Apply all the effects using EffectComposer
-        if (effectComposer.hasEffects()) {
-            effectComposer.render();  // <-- This line applies the effects
-        }
-
         // Finalize XR frame if supported
         if (xrFrame) {
             XrActivity.getInstance().endFrame();
@@ -246,11 +249,11 @@ public class GLRenderer implements GLSurfaceView.Renderer, WindowManager.OnWindo
         synchronized (drawable.renderLock) {
             Texture texture = drawable.getTexture();
             texture.updateFromDrawable(drawable);
-
+            GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, texture.getTextureId());
+            GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D,GLES20.GL_TEXTURE_MIN_FILTER, GLES20.GL_LINEAR);
+            GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, TarConstants.DEFAULT_BLKSIZE, GLES20.GL_LINEAR);
             XForm.set(tmpXForm1, x, y, drawable.width, drawable.height);
-
             XForm.multiply(tmpXForm1, tmpXForm1, tmpXForm2);
-
             GLES20.glActiveTexture(GLES20.GL_TEXTURE0);
             GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, texture.getTextureId());
             GLES20.glUniform1i(material.getUniformLocation("texture"), 0);
