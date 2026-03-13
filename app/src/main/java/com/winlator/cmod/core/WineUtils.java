@@ -78,6 +78,7 @@ public abstract class WineUtils {
         try (WineRegistryEditor registryEditor = new WineRegistryEditor(userRegFile)) {
             for (String name : direct3dLibs) registryEditor.setStringValue(dllOverridesKey, name, "native,builtin");
             setWindowMetrics(registryEditor);
+            registryEditor.close();
         }
     }
 
@@ -95,6 +96,7 @@ public abstract class WineUtils {
                 }
                 else registryEditor.removeValue(dllOverridesKey, dlname);
             }
+            registryEditor.close();
         }
         catch (JSONException e) {}
     }
@@ -118,6 +120,7 @@ public abstract class WineUtils {
                     registryEditor.removeKey(key32);
                     registryEditor.removeKey(key64);
                 }
+                registryEditor.close();
             }
         }
         else if (identifier.equals("xaudio")) {
@@ -205,6 +208,7 @@ public abstract class WineUtils {
                     registryEditor.setStringValue("Software\\Classes\\Wow6432Node\\CLSID\\{F4769300-B949-4DF9-B333-00D33932E9A6}\\InprocServer32", null, "C:\\windows\\system32\\xaudio2_1.dll");
                     registryEditor.setStringValue("Software\\Classes\\Wow6432Node\\CLSID\\{F5CA7B34-8055-42C0-B836-216129EB7E30}\\InprocServer32", null, "C:\\windows\\system32\\xaudio2_2.dll");
                 }
+                registryEditor.close();
             }
         }
     }
@@ -242,6 +246,7 @@ public abstract class WineUtils {
                 registryEditor.setDwordValue("System\\CurrentControlSet\\Services\\" + name, "Start", value);
                 registryEditor.setDwordValue("System\\ControlSet001\\Services\\" + name, "Start", value);
             }
+            registryEditor.close();
         }
     }
     /**
@@ -272,6 +277,7 @@ public abstract class WineUtils {
                     registryEditor.removeValue(joysticksKey, "ric HID Gamepad " + i);
                 }
             }
+            registryEditor.close();
         }
     }
     public static String dosToUnixPath(String dosPath, Container container) {

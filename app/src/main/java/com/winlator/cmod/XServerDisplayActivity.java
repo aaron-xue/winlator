@@ -989,9 +989,6 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
 
         // Additional container checks and environment configuration
         if (container != null) {
-            if (Byte.parseByte(startupSelection) == Container.STARTUP_SELECTION_AGGRESSIVE) {
-                // winHandler.killProcess("services.exe");
-            }
             guestProgramLauncherComponent.setContainer(this.container);
             guestProgramLauncherComponent.setWineInfo(this.wineInfo);
 

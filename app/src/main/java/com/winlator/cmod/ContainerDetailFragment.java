@@ -544,7 +544,7 @@ public class ContainerDetailFragment extends Fragment {
                     data.put("lc_all", lc_all);
                     data.put("primaryController", primaryController);
                     data.put("controllerMapping", controllerMapping);
-
+                    Log.d("ContainerDetailFragment","data:"+data.toString());
                     preloaderDialog.show(R.string.creating_container);
 
                     // Initialize ImageFs
