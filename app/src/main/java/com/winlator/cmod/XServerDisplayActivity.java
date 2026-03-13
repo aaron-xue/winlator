@@ -1106,7 +1106,8 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
         if (shortcut != null) {
             renderer.setUnviewableWMClasses("explorer.exe");
         }
-
+        boolean isNative = getIntent().getBooleanExtra("native_rendering", false);
+        renderer.setNativeMode(isNative);
         xServer.setRenderer(renderer);
         rootView.addView(xServerView);
 
