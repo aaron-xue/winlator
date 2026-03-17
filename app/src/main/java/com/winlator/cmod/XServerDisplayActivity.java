@@ -193,6 +193,7 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
 
     private GuestProgramLauncherComponent guestProgramLauncherComponent;
     private EnvVars overrideEnvVars;
+    private WindowManager.OnWindowModificationListener windowModificationListener;
 
     @Override
     public void onConfigurationChanged(@NonNull Configuration newConfig) {
@@ -441,7 +442,7 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
         boolean[] winStarted = {false};
 
         // Add the OnWindowModificationListener for dynamic workarounds
-        xServer.windowManager.addOnWindowModificationListener(new WindowManager.OnWindowModificationListener() {
+        windowModificationListener = new WindowManager.OnWindowModificationListener() {
             @Override
             public void onUpdateWindowContent(Window window) {
                 if (!winStarted[0] && window.isApplicationWindow()) {
@@ -453,7 +454,7 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
                     if (frameRatingWindowId == window.id) frameRating.update();
                 }
             }
-           
+
             @Override
             public void onMapWindow(Window window) {
                 // Log the class name of the mapped window
@@ -471,7 +472,7 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
                         runOnUiThread(() -> frameRating.setRenderer(property.toString()));
                     }
                 }
-            }    
+            }
 
             @Override
             public void onDestroyWindow(Window window) {
@@ -480,7 +481,8 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
                     changeFrameRatingVisibility(window, false);
                 }
             }
-        });
+        };
+        xServer.windowManager.addOnWindowModificationListener(windowModificationListener);
 
         if (!midiSoundFont.equals("")) {
             InputStream in = null;
@@ -745,6 +747,22 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        // Remove window modification listener to prevent memory leak
+        if (xServer != null && windowModificationListener != null) {
+            xServer.windowManager.removeOnWindowModificationListener(windowModificationListener);
+            windowModificationListener = null;
+        }
+        // Clean up XServerView to release GL resources
+        if (xServerView != null) {
+            xServerView.onDestroy();
+        }
+        // Remove all pending callbacks from handlers
+        if (handler != null) {
+            handler.removeCallbacks(savePlaytimeRunnable);
+        }
+        if (timeoutHandler != null) {
+            timeoutHandler.removeCallbacks(hideControlsRunnable);
+        }
     }
 
     @Override

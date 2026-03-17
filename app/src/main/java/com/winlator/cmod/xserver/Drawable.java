@@ -196,6 +196,16 @@ public class Drawable extends XResource {
     private static native void drawLine(short x0, short y0, short x1, short y1, int color, short lineWidth, short stride, ByteBuffer data);
 
     private static native void fromBitmap(Bitmap bitmap, ByteBuffer data);
+
+    // Destroys the drawable and releases all resources
+    public void destroy() {
+        data = null;
+        if (texture != null) {
+            texture.destroy();
+        }
+        setOnDrawListener(null);
+        setOnDestroyListener(null);
+    }
 }
 
 //package com.winlator.cmod.xserver;

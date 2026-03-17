@@ -74,4 +74,17 @@ public class RenderTarget extends Texture {
     public int getFramebuffer() {
         return framebuffer;
     }
+
+    // Destroys the framebuffer and texture resources
+    @Override
+    public void destroy() {
+        // First destroy the framebuffer (RenderTarget-specific resource)
+        if (framebuffer != 0) {
+            int[] framebuffers = new int[]{framebuffer};
+            GLES20.glDeleteFramebuffers(framebuffers.length, framebuffers, 0);
+            framebuffer = 0;
+        }
+        // Then call parent to destroy the texture
+        super.destroy();
+    }
 }

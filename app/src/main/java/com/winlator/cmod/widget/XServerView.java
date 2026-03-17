@@ -27,4 +27,10 @@ public class XServerView extends GLSurfaceView {
     public GLRenderer getRenderer() {
         return renderer;
     }
+
+    public void onDestroy() {
+        if (renderer != null) {
+            renderer.destroy();
+        }
+    }
 }

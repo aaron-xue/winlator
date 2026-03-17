@@ -103,6 +103,11 @@ public class GLRenderer implements GLSurfaceView.Renderer, WindowManager.OnWindo
         surfaceHeight = height;
         viewTransformation.update(width, height, xServer.screenInfo.width, xServer.screenInfo.height);
         viewportNeedsUpdate = true;
+
+        // Reallocate effect composer buffers when size changes
+        if (effectComposer != null) {
+            effectComposer.reallocateBuffers(width, height);
+        }
     }
 
     @Override
@@ -133,7 +138,7 @@ public class GLRenderer implements GLSurfaceView.Renderer, WindowManager.OnWindo
             xServerView.post(new Runnable() { // from class: com.winlator.cmod.renderer.GLRenderer$$ExternalSyntheticLambda2
                 @Override // java.lang.Runnable
                 public final void run() {
-                    Toast.makeText(xServerView.getContext(), msg, 0).show();
+                    Toast.makeText(xServerView.getContext(), msg, Toast.LENGTH_SHORT).show();
                 }
             });
             xServerView.setRenderMode(GLSurfaceView.RENDERMODE_WHEN_DIRTY);
@@ -145,16 +150,12 @@ public class GLRenderer implements GLSurfaceView.Renderer, WindowManager.OnWindo
         RenderableWindow directCandidate = null;
         int screenW = xServer.screenInfo.width;
         int screenH = xServer.screenInfo.height;
-        XLock lock = xServer.lock(XServer.Lockable.DRAWABLE_MANAGER);
-        try{
+        try(XLock lock = xServer.lock(XServer.Lockable.DRAWABLE_MANAGER)){
             for (RenderableWindow window : renderableWindows) {
                 if (window.content != null && window.content.width >= screenW * 0.95f && window.content.height >= screenH * 0.95f) {
                     directCandidate = window;
                     break;
                 }
-            }
-            if (lock != null) {
-                lock.close();
             }
             boolean isDirect = directCandidate != null;
             if (isDirect != wasDirectMode) {
@@ -251,23 +252,16 @@ public class GLRenderer implements GLSurfaceView.Renderer, WindowManager.OnWindo
             windowMaterial.use();
             GLES20.glUniform2f(windowMaterial.getUniformLocation("viewSize"), screenW, screenH);
             this.quadVertices.bind(windowMaterial.programId);
-            lock = xServer.lock(XServer.Lockable.DRAWABLE_MANAGER);
-            try {
-                for (RenderableWindow window : renderableWindows) {
-                    renderDrawable(window.content, window.rootX, window.rootY, this.windowMaterial);
-                }
-                if (lock != null) {
-                    lock.close();
-                }
-                if (cursorVisible) {
-                    renderCursor();
-                }
-                if (!magnifierEnabled && !fullscreen) {
-                    GLES20.glDisable(GLES20.GL_SCISSOR_TEST);
-                }
-                quadVertices.disable();
-            } finally {
+            for (RenderableWindow window : renderableWindows) {
+                renderDrawable(window.content, window.rootX, window.rootY, this.windowMaterial);
             }
+            if (cursorVisible) {
+                renderCursor();
+            }
+            if (!magnifierEnabled && !fullscreen) {
+                GLES20.glDisable(GLES20.GL_SCISSOR_TEST);
+            }
+            quadVertices.disable();
         } finally {
         }
     }
@@ -426,9 +420,6 @@ public class GLRenderer implements GLSurfaceView.Renderer, WindowManager.OnWindo
             for (RenderableWindow window : renderableWindows) {
                 renderDrawable(window.content, window.rootX, window.rootY, windowMaterial);
             }
-            if (lock != null) {
-                lock.close();
-            }
         }
         quadVertices.disable();
 
@@ -476,9 +467,6 @@ public class GLRenderer implements GLSurfaceView.Renderer, WindowManager.OnWindo
         try (XLock lock = xServer.lock(XServer.Lockable.WINDOW_MANAGER, XServer.Lockable.DRAWABLE_MANAGER)) {
             renderableWindows.clear();
             collectRenderableWindows(xServer.windowManager.rootWindow, xServer.windowManager.rootWindow.getX(), xServer.windowManager.rootWindow.getY());
-            if (lock != null) {
-                lock.close();
-            }
         }
     }
 
@@ -605,5 +593,25 @@ public class GLRenderer implements GLSurfaceView.Renderer, WindowManager.OnWindo
 
     public void setUnviewableWMClasses(String... unviewableWMNames) {
         this.unviewableWMClasses = unviewableWMNames;
+    }
+
+    public void destroy() {
+        xServer.windowManager.removeOnWindowModificationListener(this);
+        xServer.pointer.removeOnPointerMotionListener(this);
+        if (effectComposer != null) {
+            effectComposer.destroy();
+        }
+        if (cursorMaterial != null) {
+            cursorMaterial.destroy();
+        }
+        if (windowMaterial != null) {
+            windowMaterial.destroy();
+        }
+        if (quadVertices != null) {
+            quadVertices.destroy();
+        }
+        if (rootCursorDrawable != null) {
+            rootCursorDrawable.destroy();
+        }
     }
 }

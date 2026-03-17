@@ -44,6 +44,19 @@ public class EffectComposer {
         }
     }
 
+    // Reallocates buffers when surface size changes
+    public synchronized void reallocateBuffers(int width, int height) {
+        if (readBuffer != null) {
+            readBuffer.destroy();
+            readBuffer = null;
+        }
+        if (writeBuffer != null) {
+            writeBuffer.destroy();
+            writeBuffer = null;
+        }
+        initBuffers();
+    }
+
     public synchronized void addEffect(Effect effect) {
         if (!effects.contains(effect)) {
             effects.add(effect);
@@ -196,6 +209,21 @@ public class EffectComposer {
             Log.d(TAG, "ToonEffect added");
         }
         renderer.xServerView.requestRender();
+    }
+
+    // Clean up resources
+    public void destroy() {
+        synchronized (this) {
+            if (readBuffer != null) {
+                readBuffer.destroy();
+                readBuffer = null;
+            }
+            if (writeBuffer != null) {
+                writeBuffer.destroy();
+                writeBuffer = null;
+            }
+            effects.clear();
+        }
     }
 
 }

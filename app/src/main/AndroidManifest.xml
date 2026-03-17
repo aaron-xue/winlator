@@ -148,17 +148,5 @@
         <meta-data
             android:name="android.allow_multiple_resumed_activities"
             android:value="true" />
-        <provider
-            android:name="androidx.startup.InitializationProvider"
-            android:exported="false"
-            android:authorities="com.tencent.ig.androidx-startup">
-            <meta-data
-                android:name="androidx.emoji2.text.EmojiCompatInitializer"
-                android:value="androidx.startup"/>
-            <meta-data
-                android:name="androidx.lifecycle.ProcessLifecycleInitializer"
-                android:value="androidx.startup"/>
-        </provider>
-
     </application>
 </manifest>

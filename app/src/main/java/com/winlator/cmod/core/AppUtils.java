@@ -264,10 +264,10 @@ public abstract class AppUtils {
     }
 
     public static boolean setSpinnerSelectionFromIdentifier(Spinner spinner, String identifier) {
-        spinner.setSelection(0, false);
+        spinner.setSelection(0);
         for (int i = 0; i < spinner.getCount(); i++) {
             if (StringUtils.parseIdentifier(spinner.getItemAtPosition(i)).equals(identifier)) {
-                spinner.setSelection(i, false);
+                spinner.setSelection(i);
                 return true;
             }
         }
@@ -347,7 +347,11 @@ public abstract class AppUtils {
         timer.schedule(new TimerTask() {
             @Override
             public void run() {
-                callback.run();
+                try {
+                    callback.run();
+                } finally {
+                    timer.cancel();
+                }
             }
         }, delay);
     }

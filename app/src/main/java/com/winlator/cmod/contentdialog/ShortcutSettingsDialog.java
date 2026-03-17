@@ -69,17 +69,6 @@ public class ShortcutSettingsDialog extends ContentDialog {
         setTitle(shortcut.name);
         setIcon(R.drawable.icon_settings);
 
-        // Initialize the ContentsManager
-        ContainerManager containerManager = shortcut.container.getManager();
-
-//        if (containerManager != null) {
-//            this.contentsManager = new ContentsManager(containerManager.getContext());
-//            this.contentsManager.syncTurnipContents();
-//        } else {
-//            Toast.makeText(fragment.getContext(), "Failed to initialize container manager. Please try again.", Toast.LENGTH_SHORT).show();
-//            return;
-//        }
-
         createContentView();
     }
 
