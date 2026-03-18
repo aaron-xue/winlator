@@ -434,6 +434,7 @@ public class ControlElement {
                 float offsetY = snappingSize * 3 * scale;
                 float start = snappingSize * scale;
                 Path path = inputControlsView.getPath();
+
                 // Set common stroke properties once
                 paint.setStyle(Paint.Style.STROKE);
                 paint.setColor(selected ? inputControlsView.getSecondaryColor() : primaryColor);
@@ -444,22 +445,11 @@ public class ControlElement {
                     path.reset();
                     switch (i) {
                         case 0: // UP
-                            float r = snappingSize * 0.3f * scale;
-                            // 角1: 底部中心 - 外凸
-                            path.moveTo(cx - r, cy - start);
-                            path.quadTo(cx, cy - start + r, cx + r, cy - start);
-                            // 角2: 右内侧 - 外凸
-                            path.lineTo(cx + offsetX - r, cy - offsetY+r);
-                            path.quadTo(cx + offsetX-r/2, cy - offsetY, cx + offsetX, cy - offsetY - r);
-                            // 角3: 右上角 - 外凸
-                            path.lineTo(cx + offsetX, boundingBox.top + r);
-                            path.quadTo(cx + offsetX, boundingBox.top, cx + offsetX - r, boundingBox.top);
-                            // 角4: 左上角 - 外凸
-                            path.lineTo(cx - offsetX + r, boundingBox.top);
-                            path.quadTo(cx - offsetX, boundingBox.top, cx - offsetX, boundingBox.top + r);
-                            // 角5: 左内侧 - 外凸
-                            path.lineTo(cx - offsetX, cy - offsetY - r);
-                            path.quadTo(cx - offsetX+r/2, cy - offsetY, cx - offsetX + r, cy - offsetY+r);
+                            path.moveTo(cx, cy - start);
+                            path.lineTo(cx - offsetX, cy - offsetY);
+                            path.lineTo(cx - offsetX, boundingBox.top);
+                            path.lineTo(cx + offsetX, boundingBox.top);
+                            path.lineTo(cx + offsetX, cy - offsetY);
                             path.close();
                             break;
                         case 1: // RIGHT
