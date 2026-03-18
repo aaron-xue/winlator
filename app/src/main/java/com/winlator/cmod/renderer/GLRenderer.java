@@ -269,9 +269,10 @@ public class GLRenderer implements GLSurfaceView.Renderer, WindowManager.OnWindo
     public void drawFrame() {
         boolean xrFrame = false;
         boolean xrImmersive = false;
-        if (XrActivity.isEnabled(null)) {
-            xrImmersive = XrActivity.getImmersive();
-            xrFrame = XrActivity.getInstance().beginFrame(xrImmersive, XrActivity.getSBS());
+        XrActivity xrActivity = XrActivity.getInstance();
+        if (XrActivity.isEnabled(null) && xrActivity != null) {
+            xrImmersive = xrActivity.getImmersive();
+            xrFrame = xrActivity.beginFrame(xrImmersive, XrActivity.getSBS());
         }
 
         // Update the viewport if necessary
@@ -330,6 +331,8 @@ public class GLRenderer implements GLSurfaceView.Renderer, WindowManager.OnWindo
             GLES20.glEnable(GLES20.GL_BLEND);
             GLES20.glBlendFunc(GLES20.GL_SRC_ALPHA, GLES20.GL_ONE_MINUS_SRC_ALPHA);
             renderCursor();
+            // 恢复GL状态以避免影响后续渲染
+            GLES20.glDisable(GLES20.GL_BLEND);
         } 
 
         // Disable scissor test if magnifier is disabled and not in fullscreen mode
@@ -341,7 +344,6 @@ public class GLRenderer implements GLSurfaceView.Renderer, WindowManager.OnWindo
         if (xrFrame) {
             XrActivity.getInstance().endFrame();
             XrActivity.updateControllers();
-            xServerView.requestRender();
         }
     }
 

@@ -22,10 +22,11 @@ import com.winlator.cmod.win32.MSIcon;
 
 /* loaded from: classes.dex */
 public class PEParser {
+    private static final int MAX_RESOURCE_SIZE = 64 * 1024 * 1024; // 64MB
+    
     private final File peFile;
     private int resourcesRVA = 0;
     private int resourcesOffset = 0;
-    
     private interface ImageResourceEntry {
     }
 
@@ -138,32 +139,31 @@ public class PEParser {
                 int fileHeaderOffset = dosHeader.getInt() + 4;
                 int filePosition2 = filePosition + StreamUtils.skip(inStream, fileHeaderOffset - filePosition);
                 ByteBuffer fileHeader = ByteBuffer.allocate(20).order(byteOrder);
-                int filePosition3 = filePosition2 + inStream.read(fileHeader.array());
+                int bytesRead = inStream.read(fileHeader.array());
+                if (bytesRead != fileHeader.array().length) {
+                    throw new IOException("Failed to read file header: expected " + fileHeader.array().length + " bytes, got " + bytesRead);
+                }
+                int filePosition3 = filePosition2 + bytesRead;
                 Short.toUnsignedInt(fileHeader.getShort());
                 short numberOfSections = fileHeader.getShort();
                 fileHeader.position(fileHeader.position() + 12);
                 short sizeofOptionalHeader = fileHeader.getShort();
                 int filePosition4 = filePosition3 + StreamUtils.skip(inStream, sizeofOptionalHeader);
-                int i = 0;
                 this.resourcesRVA = 0;
                 this.resourcesOffset = 0;
                 int resourcesSize = 0;
                 ByteBuffer sectionHeader = ByteBuffer.allocate(40).order(byteOrder);
                 byte[] nameBytes = new byte[8];
-                byte i2 = 0;
-                while (true) {
-                    if (i2 >= numberOfSections) {
-                        break;
-                    }
-                    sectionHeader.position(i);
+                byte sectionIndex = 0;
+                while (sectionIndex < numberOfSections) {
                     filePosition4 += inStream.read(sectionHeader.array());
+                    sectionHeader.rewind();
                     sectionHeader.get(nameBytes);
                     String name = StringUtils.fromANSIString(nameBytes);
-                    if (!name.equals(".rsrc")&&!name.equals(".RSRC")) {
-                        i2 = (byte) (i2 + 1);
-                        i = 0;
+                    if (!name.equals(".rsrc") && !name.equals(".RSRC")) {
+                        sectionIndex++;
                     } else {
-                        sectionHeader.getInt();
+                        sectionHeader.getInt(); // VirtualSize (unused)
                         this.resourcesRVA = sectionHeader.getInt();
                         resourcesSize = sectionHeader.getInt();
                         this.resourcesOffset = sectionHeader.getInt();
@@ -172,9 +172,15 @@ public class PEParser {
                 }
                 int i3 = this.resourcesOffset;
                 if (i3 > 0) {
+                    if (resourcesSize <= 0 || resourcesSize > MAX_RESOURCE_SIZE) {
+                        throw new IOException("Invalid resource size: " + resourcesSize);
+                    }
                     int iSkip = filePosition4 + StreamUtils.skip(inStream, i3 - filePosition4);
                     ByteBuffer resourcesBuffer = ByteBuffer.allocate(resourcesSize).order(ByteOrder.LITTLE_ENDIAN);
-                    inStream.read(resourcesBuffer.array(), 0, resourcesBuffer.limit());
+                    bytesRead = inStream.read(resourcesBuffer.array(), 0, resourcesBuffer.limit());
+                    if (bytesRead != resourcesBuffer.limit()) {
+                        throw new IOException("Failed to read resources: expected " + resourcesBuffer.limit() + " bytes, got " + bytesRead);
+                    }
                     ImageResourceDirectory imageResourceDirectory = new ImageResourceDirectory(resourcesBuffer, 0);
                     return imageResourceDirectory;
                 }
@@ -204,7 +210,7 @@ public class PEParser {
                     BitmapFactory.Options options = new BitmapFactory.Options();
                     options.inJustDecodeBounds = true;
                     BitmapFactory.decodeByteArray(iconData.array(), 0, iconData.limit(), options);
-                    
+
                     // If looking for specific icon index, match it
                     if (iconIndex >= 0) {
                         if (i == iconIndex) {
@@ -213,7 +219,8 @@ public class PEParser {
                     } else {
                         // Otherwise select based on size preference
                         if (largeIcon == (options.outWidth >= 32)) {
-                            return BitmapFactory.decodeByteArray(iconData.array(), 0, iconData.limit());
+                            options.inJustDecodeBounds = false;
+                            return BitmapFactory.decodeByteArray(iconData.array(), 0, iconData.limit(), options);
                         }
                     }
                 } else {
@@ -221,6 +228,9 @@ public class PEParser {
                     if (iconData.remaining() >= 40) {
                         int bitmapOffset = iconData.getInt();
                         int bmpWidth = iconData.getInt();
+                        if (bmpWidth <= 0 || bmpWidth > 4096 || bitmapOffset < 0 || bitmapOffset >= iconData.limit()) {
+                            continue; // Skip invalid width or offset
+                        }
                         iconData.getInt();
                         iconData.getShort();
                         short bitCount = iconData.getShort();
@@ -228,28 +238,17 @@ public class PEParser {
                         iconData.getInt();
                         iconData.getInt();
                         iconData.getInt();
-                        int clrUsed = iconData.getInt();
-                        
-                        // Skip unsupported formats: 8-bit or 32-bit uncompressed images
-                        // boolean isUnsupported = (bitCount != 8&& bitCount != 24 && bitCount != 32) || (compression != 0 || clrUsed != 0);
-                        boolean isUnsupported = (bitCount != 8&& bitCount != 24 && bitCount != 32) || (compression != 0);
+                        iconData.getInt(); // clrUsed (unused)
+
+                        boolean isUnsupported = (bitCount != 8 && bitCount != 24 && bitCount != 32) || compression != 0;
                         if (!isUnsupported) {
-                            if (iconIndex < 0) {
-                                if (largeIcon == (bmpWidth >= 32)) {
-                                    iconData.position(bitmapOffset);
-                                    Bitmap bitmap = MSBitmap.decodeBuffer(bmpWidth, bmpWidth, bitCount, iconData);
-                                    if (bitmap != null) {
-                                        return bitmap;
-                                    }
-                                }
-                            } else if (i == iconIndex) {
-                                // Decode if it has at least 8-bit color depth
-                                if (bitCount >= 8) {
-                                    iconData.position(bitmapOffset);
-                                    Bitmap bitmap = MSBitmap.decodeBuffer(bmpWidth, bmpWidth, bitCount, iconData);
-                                    if (bitmap != null) {
-                                        return bitmap;
-                                    }
+                            boolean shouldDecode = (iconIndex < 0 && largeIcon == (bmpWidth >= 32)) ||
+                                                (iconIndex >= 0 && i == iconIndex && bitCount >= 8);
+                            if (shouldDecode) {
+                                iconData.position(bitmapOffset);
+                                Bitmap bitmap = MSBitmap.decodeBuffer(bmpWidth, bmpWidth, bitCount, iconData);
+                                if (bitmap != null) {
+                                    return bitmap;
                                 }
                             }
                         }
