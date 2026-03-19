@@ -117,6 +117,10 @@ public class GLRenderer implements GLSurfaceView.Renderer, WindowManager.OnWindo
             toggleFullscreen = false;
             viewportNeedsUpdate = true;
         }
+        if (cpuSaverMode) {
+            drawFrameOptimized();
+            return;
+        }
         // Apply all the effects using EffectComposer
         if (effectComposer!=null && effectComposer.hasEffects() && surfaceWidth > 0 && surfaceHeight > 0) {
             try {
@@ -151,11 +155,8 @@ public class GLRenderer implements GLSurfaceView.Renderer, WindowManager.OnWindo
         int screenW = xServer.screenInfo.width;
         int screenH = xServer.screenInfo.height;
         try(XLock lock = xServer.lock(XServer.Lockable.DRAWABLE_MANAGER)){
-            for (RenderableWindow window : renderableWindows) {
-                if (window.content != null && window.content.width >= screenW * 0.95f && window.content.height >= screenH * 0.95f) {
-                    directCandidate = window;
-                    break;
-                }
+            if(renderableWindows.size()>0){
+                directCandidate = renderableWindows.get(renderableWindows.size()-1);
             }
             boolean isDirect = directCandidate != null;
             if (isDirect != wasDirectMode) {
@@ -386,6 +387,12 @@ public class GLRenderer implements GLSurfaceView.Renderer, WindowManager.OnWindo
     @Override
     public void onUpdateWindowAttributes(Window window, Bitmask mask) {
         if (mask.isSet(WindowAttributes.FLAG_CURSOR)) xServerView.requestRender();
+    }
+
+    @Override
+    public void onFocusChanged(Window focusedWindow, Window previousFocusedWindow) {
+        xServerView.queueEvent(this::updateScene);
+        xServerView.requestRender();
     }
 
     @Override

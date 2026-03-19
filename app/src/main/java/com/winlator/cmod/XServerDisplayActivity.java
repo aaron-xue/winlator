@@ -424,7 +424,10 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
 
         this.graphicsDriverConfig = GraphicsDriverConfigDialog.parseGraphicsDriverConfig(graphicsDriverConfig);
         this.dxwrapperConfig = DXVKConfigDialog.parseConfig(dxwrapperConfig);
-
+        String framerate = this.dxwrapperConfig.get("framerate");
+        android.view.WindowManager.LayoutParams params = getWindow().getAttributes();
+        params.preferredRefreshRate = Float.parseFloat(framerate);
+        getWindow().setAttributes(params);
         if (!wineInfo.isWin64()) {
             onExtractFileListener = (file, size) -> {
                 String path = file.getPath();
@@ -1123,9 +1126,9 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
 
         if (shortcut != null) {
             renderer.setUnviewableWMClasses("explorer.exe");
+            boolean isNative = shortcut.getExtra("nativeRendering").equals("1");
+            renderer.setNativeMode(isNative);
         }
-        boolean isNative = getIntent().getBooleanExtra("native_rendering", false);
-        renderer.setNativeMode(isNative);
         xServer.setRenderer(renderer);
         rootView.addView(xServerView);
 

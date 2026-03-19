@@ -193,6 +193,12 @@
                         android:textColor="@android:color/holo_blue_dark" />
                 </LinearLayout>
 
+                <CheckBox
+                    android:id="@+id/CBNativeRenderingMode"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/native_rendering" />
+
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"

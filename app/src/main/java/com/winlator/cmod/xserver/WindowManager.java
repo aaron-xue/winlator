@@ -44,6 +44,8 @@ public class WindowManager extends XResourceManager {
         default void onUpdateWindowAttributes(Window window, Bitmask mask) {}
 
         default void onModifyWindowProperty(Window window, Property property) {}
+
+        default void onFocusChanged(Window focusedWindow, Window previousFocusedWindow) {}
     }
 
     public WindowManager(ScreenInfo screenInfo, DrawableManager drawableManager) {
@@ -134,8 +136,10 @@ public class WindowManager extends XResourceManager {
     }
 
     public void setFocus(Window focusedWindow, FocusRevertTo focusRevertTo) {
+        Window previousFocusedWindow = this.focusedWindow;
         this.focusedWindow = focusedWindow;
         this.focusRevertTo = focusRevertTo;
+        triggerOnFocusChanged(focusedWindow, previousFocusedWindow);
     }
 
     public FocusRevertTo getFocusRevertTo() {
@@ -344,6 +348,12 @@ public class WindowManager extends XResourceManager {
     public void triggerOnModifyWindowProperty(Window window, Property property) {
         for (int i = onWindowModificationListeners.size()-1; i >= 0; i--) {
             onWindowModificationListeners.get(i).onModifyWindowProperty(window, property);
+        }
+    }
+
+    private void triggerOnFocusChanged(Window focusedWindow, Window previousFocusedWindow) {
+        for (int i = onWindowModificationListeners.size()-1; i >= 0; i--) {
+            onWindowModificationListeners.get(i).onFocusChanged(focusedWindow, previousFocusedWindow);
         }
     }
 }

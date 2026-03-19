@@ -104,6 +104,7 @@
     <string name="press_any_button_on_your_controller">Press any button on your controller</string>
     <string name="bindings">bindings</string>
     <string name="show_touchscreen_controls">Show Touchscreen Controls</string>
+    <string name="native_rendering">Direct Rendering+</string>
     <string name="dxwrapper">DX Wrapper</string>
     <string name="mouse_warp_override">Mouse Warp Override</string>
     <string name="direct3d">Direct3D</string>
