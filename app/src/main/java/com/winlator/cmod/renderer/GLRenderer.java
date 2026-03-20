@@ -25,7 +25,6 @@ import com.winlator.cmod.xserver.WindowAttributes;
 import com.winlator.cmod.xserver.WindowManager;
 import com.winlator.cmod.xserver.XLock;
 import com.winlator.cmod.xserver.XServer;
-
 import java.util.ArrayList;
 
 import javax.microedition.khronos.egl.EGLConfig;
@@ -55,11 +54,13 @@ public class GLRenderer implements GLSurfaceView.Renderer, WindowManager.OnWindo
     public int surfaceHeight;
     private boolean wasDirectMode = false;
     private final EffectComposer effectComposer;
+    private Context context ;
 
     public GLRenderer(XServerView xServerView, XServer xServer) {
         this.xServerView = xServerView;
         this.xServer = xServer;
         this.effectComposer = new EffectComposer(this);
+        context = this.xServerView.getContext();
         rootCursorDrawable = createRootCursorDrawable();
 
         quadVertices.put(new float[]{
@@ -138,13 +139,14 @@ public class GLRenderer implements GLSurfaceView.Renderer, WindowManager.OnWindo
         if (cpuSaverMode != enable) {
             cpuSaverMode = enable;
             viewportNeedsUpdate = true;
-            final String msg = enable ? "Direct Rendering+ Enabled" : "Direct Rendering+ Disabled";
-            xServerView.post(new Runnable() { // from class: com.winlator.cmod.renderer.GLRenderer$$ExternalSyntheticLambda2
-                @Override // java.lang.Runnable
-                public final void run() {
-                    Toast.makeText(xServerView.getContext(), msg, Toast.LENGTH_SHORT).show();
-                }
-            });
+            if(enable){
+                xServerView.post(new Runnable() {
+                    @Override // java.lang.Runnable
+                    public final void run() {
+                        Toast.makeText(context, context.getResources().getString(R.string.enable) +context.getResources().getString(R.string.native_rendering), Toast.LENGTH_SHORT).show();
+                    }
+                });
+            }
             xServerView.setRenderMode(GLSurfaceView.RENDERMODE_WHEN_DIRTY);
             xServerView.requestRender();
         }
@@ -465,7 +467,6 @@ public class GLRenderer implements GLSurfaceView.Renderer, WindowManager.OnWindo
     }
 
     private Drawable createRootCursorDrawable() {
-        Context context = xServerView.getContext();
         BitmapFactory.Options options = new BitmapFactory.Options();
         options.inScaled = false;
         Bitmap bitmap = BitmapFactory.decodeResource(context.getResources(), R.drawable.cursor, options);
