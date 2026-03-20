@@ -7,7 +7,6 @@ import android.opengl.GLES20;
 import android.opengl.GLSurfaceView;
 import android.util.Log;
 import android.widget.Toast;
-import org.apache.commons.compress.archivers.tar.TarConstants;
 import com.winlator.cmod.R;
 import com.winlator.cmod.XrActivity;
 import com.winlator.cmod.math.Mathf;
@@ -209,6 +208,7 @@ public class GLRenderer implements GLSurfaceView.Renderer, WindowManager.OnWindo
                     GLES20.glEnable(GLES20.GL_BLEND);
                     GLES20.glBlendFunc(GLES20.GL_SRC_ALPHA, GLES20.GL_ONE_MINUS_SRC_ALPHA);
                     renderCursor();
+                    GLES20.glDisable(GLES20.GL_BLEND);
                 }
                 if (!magnifierEnabled && !fullscreen) {
                     GLES20.glDisable(GLES20.GL_SCISSOR_TEST);
@@ -279,8 +279,8 @@ public class GLRenderer implements GLSurfaceView.Renderer, WindowManager.OnWindo
         }
 
         // Update the viewport if necessary
-        if (viewportNeedsUpdate && magnifierEnabled) {
-            if (fullscreen) {
+        if (viewportNeedsUpdate) {
+            if (fullscreen || xrImmersive) {
                 GLES20.glViewport(0, 0, surfaceWidth, surfaceHeight);
             }
             else {
@@ -410,7 +410,7 @@ public class GLRenderer implements GLSurfaceView.Renderer, WindowManager.OnWindo
             texture.updateFromDrawable(drawable);
             GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, texture.getTextureId());
             GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D,GLES20.GL_TEXTURE_MIN_FILTER, GLES20.GL_LINEAR);
-            GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, TarConstants.DEFAULT_BLKSIZE, GLES20.GL_LINEAR);
+            GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MAG_FILTER, GLES20.GL_LINEAR);
             XForm.set(tmpXForm1, x, y, drawable.width, drawable.height);
             XForm.multiply(tmpXForm1, tmpXForm1, tmpXForm2);
             GLES20.glActiveTexture(GLES20.GL_TEXTURE0);

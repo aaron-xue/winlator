@@ -128,7 +128,7 @@ public class FrameRating extends FrameLayout implements Runnable {
 
     private void setTimeString(){
         timeStringBuilder.setLength(0);
-        timeStringBuilder.append(timeFormat.format(new Date()));
+        timeStringBuilder.append(timeFormat.format(System.currentTimeMillis()));
         tvTIME.setText(timeStringBuilder);
     }
 
@@ -157,8 +157,16 @@ public class FrameRating extends FrameLayout implements Runnable {
     public void run() {
         if (getVisibility() == GONE) setVisibility(View.VISIBLE);
         tvFPS.setText(String.format(Locale.ENGLISH, "%.1f", lastFPS));
-        tvRAM.setText(String.format(Locale.ENGLISH, "%.2f%%", (getAvailableRAM()/totalRAM)*100.0f ));
-        tvPOWER.setText(getPower());
+        float ramUsage = totalRAM > 0 ? (getAvailableRAM() / totalRAM) * 100.0f : 0.0f;
+        tvRAM.setText(String.format(Locale.ENGLISH, "%.2f%%", ramUsage));
+        
+        // Cache power text to avoid repeated formatting
+        if (batteryManager != null) {
+            tvPOWER.setText(getPower());
+        } else {
+            tvPOWER.setText("N/A");
+        }
+        
         readCPUAvalByHPM();
         setTimeString();
     }
@@ -166,6 +174,13 @@ public class FrameRating extends FrameLayout implements Runnable {
     @Override
     protected void onDetachedFromWindow() {
         super.onDetachedFromWindow();
-        context.unregisterReceiver(batteryReceiver);
+        if (batteryReceiver != null) {
+            try {
+                context.unregisterReceiver(batteryReceiver);
+                batteryReceiver = null;
+            } catch (IllegalArgumentException e) {
+                // Receiver already unregistered
+            }
+        }
     }
 }

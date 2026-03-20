@@ -449,12 +449,14 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
             @Override
             public void onUpdateWindowContent(Window window) {
                 if (!winStarted[0] && window.isApplicationWindow()) {
-                    xServerView.getRenderer().setCursorVisible(true);
+                    runOnUiThread(() -> xServerView.getRenderer().setCursorVisible(true));
                     preloaderDialog.closeOnUiThread();
                     winStarted[0] = true;
                 }
                 if(container.isShowFPS()){
-                    if (frameRatingWindowId == window.id) frameRating.update();
+                    if (frameRatingWindowId == window.id) {
+                        runOnUiThread(() -> frameRating.update());
+                    }
                 }
             }
 
@@ -511,7 +513,13 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
                     MidiManager.load(in, callback);
                 } else
                     MidiManager.load(new File(MidiManager.getSoundFontDir(this), midiSoundFont), callback);
-            } catch (Exception e) {}
+            } catch (Exception e) {
+                if (in != null) {
+                    try {
+                        in.close();
+                    } catch (IOException ignored) {}
+                }
+            }
         }
 
         // Check if a profile is defined by the shortcut
@@ -738,6 +746,12 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
                 while (!ProcessHelper.listRunningWineProcesses().isEmpty()) {
                     long elapsed = System.currentTimeMillis() - start;
                     if (elapsed >= 1500) {
+                        break;
+                    }
+                    try {
+                        Thread.sleep(50); // Prevent CPU spinning
+                    } catch (InterruptedException e) {
+                        Thread.currentThread().interrupt();
                         break;
                     }
                 }
