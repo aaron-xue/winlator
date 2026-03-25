@@ -365,6 +365,23 @@
         <item name="showSeekBarValue">false</item>
     </style>
 
+    <!-- Frame Rating Stats Text Style -->
+    <style name="StatsTextBase">
+        <item name="android:textStyle">bold</item>
+        <item name="android:textSize">10sp</item>
+        <item name="android:includeFontPadding">false</item>
+        <item name="android:maxLines">1</item>
+        <item name="android:fontFamily">monospace</item>
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+    </style>
+
+    <style name="StatsTextBase.Label" parent="StatsTextBase" />
+
+    <style name="StatsTextBase.Value" parent="StatsTextBase">
+        <item name="android:textColor">@color/stats_value</item>
+    </style>
+
     <style name="Preference">
         <item name="android:layout">@layout/preference</item>
     </style>

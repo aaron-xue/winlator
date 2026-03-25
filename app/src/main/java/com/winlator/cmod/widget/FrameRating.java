@@ -78,6 +78,14 @@ public class FrameRating extends FrameLayout implements Runnable {
         batteryReceiver = new BatteryLevelReceiver();
         context.registerReceiver(batteryReceiver , batteryFilter);
         addView(view);
+
+        // Set layout params for horizontal centering
+        FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(
+            FrameLayout.LayoutParams.WRAP_CONTENT,
+            FrameLayout.LayoutParams.WRAP_CONTENT
+        );
+        params.gravity = android.view.Gravity.CENTER_HORIZONTAL;
+        setLayoutParams(params);
     }
 
     private short calculateMaxClockSpeed() {

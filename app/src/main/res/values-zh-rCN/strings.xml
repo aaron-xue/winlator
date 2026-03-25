@@ -665,7 +665,6 @@
     <string name="dark_mode">暗黑模式</string>
     <string name="winlator_path">Winlator文件夹</string>
     <string name="choose_path">选择文件夹</string>
-    <string name="shortcut_export_path">快捷方式导出文件夹</string>
     <string name="path_settings">文件夹设置</string>
     <string name="gyroscope">陀螺仪</string>
     <string name="enable_right_stick_gyroscope">启用右摇杆陀螺仪（实验性功能）</string>

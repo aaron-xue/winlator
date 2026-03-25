@@ -5,6 +5,8 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.pm.ApplicationInfo;
 import android.net.ConnectivityManager;
+import android.net.Network;
+import android.net.LinkProperties;
 import android.os.Process;
 import android.util.Log;
 
@@ -46,7 +48,7 @@ import java.util.ArrayList;
 
 public class GuestProgramLauncherComponent extends EnvironmentComponent {
     private String guestExecutable;
-    private static int pid = -1;
+    private int pid = -1;
     private String[] bindingPaths;
     private EnvVars envVars;
     private WineInfo wineInfo;
@@ -100,7 +102,7 @@ public class GuestProgramLauncherComponent extends EnvironmentComponent {
         }
     }
 
-    private void extractEmulatorsDlls() {;
+    private void extractEmulatorsDlls() {
         Context context = environment.getContext();
         File rootDir = environment.getImageFs().getRootDir();
         File system32dir = new File(rootDir + "/home/xuser/.wine/drive_c/windows/system32");
@@ -248,6 +250,7 @@ public class GuestProgramLauncherComponent extends EnvironmentComponent {
         boolean openWithAndroidBrowser = preferences.getBoolean("open_with_android_browser", false);
         boolean shareAndroidClipboard = preferences.getBoolean("share_android_clipboard", false);
 
+        EnvVars envVars = new EnvVars();
         if (openWithAndroidBrowser)
             envVars.put("WINE_OPEN_WITH_ANDROID_BROWSER", "1");
         if (shareAndroidClipboard) {
@@ -255,7 +258,6 @@ public class GuestProgramLauncherComponent extends EnvironmentComponent {
             envVars.put("WINE_TO_ANDROID_CLIPBOARD", "1");
         }
 
-        EnvVars envVars = new EnvVars();
 
         addBox64EnvVars(envVars, enableBox64Logs);
         envVars.putAll(FEXCorePresetManager.getEnvVars(context, fexcorePreset));
@@ -310,9 +312,22 @@ public class GuestProgramLauncherComponent extends EnvironmentComponent {
 
         String primaryDNS = "8.8.4.4";
         ConnectivityManager connectivityManager = (ConnectivityManager) context.getSystemService(Service.CONNECTIVITY_SERVICE);
-        if (connectivityManager.getActiveNetwork() != null) {
-            ArrayList<InetAddress> dnsServers = new ArrayList<>(connectivityManager.getLinkProperties(connectivityManager.getActiveNetwork()).getDnsServers());
-            primaryDNS = dnsServers.get(0).toString().substring(1);
+        if (connectivityManager != null) {
+            Network activeNetwork = connectivityManager.getActiveNetwork();
+            if (activeNetwork != null) {
+                LinkProperties linkProperties = connectivityManager.getLinkProperties(activeNetwork);
+                if (linkProperties != null) {
+                    ArrayList<InetAddress> dnsServers = new ArrayList<>(linkProperties.getDnsServers());
+                    if (!dnsServers.isEmpty()) {
+                        String dnsAddress = dnsServers.get(0).getHostAddress();
+                        if (dnsAddress != null && !dnsAddress.isEmpty()) {
+                            int zoneSeparatorIndex = dnsAddress.indexOf('%');
+                            if (zoneSeparatorIndex > 0) dnsAddress = dnsAddress.substring(0, zoneSeparatorIndex);
+                            primaryDNS = dnsAddress;
+                        }
+                    }
+                }
+            }
         }
         envVars.put("ANDROID_RESOLV_DNS", primaryDNS);
         envVars.put("WINE_NEW_NDIS", "1");
@@ -389,9 +404,11 @@ public class GuestProgramLauncherComponent extends EnvironmentComponent {
         String overriddenCommand = envVars.get("GUEST_PROGRAM_LAUNCHER_COMMAND");
         if (!overriddenCommand.isEmpty()) {
             String[] parts = overriddenCommand.split(";");
-            for (String part : parts)
-                command += part + " ";
-            command = command.trim();
+            StringBuilder commandBuilder = new StringBuilder();
+            for (String part : parts) {
+                commandBuilder.append(part).append(" ");
+            }
+            command = commandBuilder.toString().trim();
         }
         else {
             if (wineInfo.isArm64EC()) {

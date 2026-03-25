@@ -52,6 +52,7 @@
         android:allowAudioPlaybackCapture="true"
         android:hardwareAccelerated="true"
         android:supportsRtl="true"
+        android:extractNativeLibs="true"
         tools:ignore="DataExtractionRules,GoogleAppIndexingWarning">
 
         <!-- Main activity -->

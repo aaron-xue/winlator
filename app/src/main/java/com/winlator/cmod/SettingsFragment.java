@@ -77,7 +77,6 @@ import java.util.concurrent.Executors;
 public class SettingsFragment extends Fragment {
     public static final String DEFAULT_WINE_DEBUG_CHANNELS = "warn,err,fixme";
     public static final String DEFAULT_WINLATOR_PATH = Environment.getExternalStorageDirectory().getPath() + "/Winlator";
-    public static final String DEFAULT_SHORTCUT_EXPORT_PATH = DEFAULT_WINLATOR_PATH + "/Shortcuts";
     private Callback<Uri> installSoundFontCallback;
     private PreloaderDialog preloaderDialog;
     private SharedPreferences preferences;
@@ -91,7 +90,6 @@ public class SettingsFragment extends Fragment {
     boolean isDarkMode;
 
     private static final int REQUEST_CODE_WINLATOR_PATH = 1002;
-    private static final int REQUEST_CODE_SHORTCUT_EXPORT_PATH = 1003;
     private static final int REQUEST_CODE_INSTALL_SOUNDFONT = 1001;
     private static final int REQUEST_CODE_IMPORT_BOX64_PRESET = 1004;
     private static final int REQUEST_CODE_IMPORT_FEXCORE_PRESET = 1005;
@@ -106,8 +104,12 @@ public class SettingsFragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        // Apply dynamic styles to all labels
-        applyDynamicStylesRecursively(view);
+        // Post style application to avoid blocking UI during transition
+        view.post(() -> {
+            if (isAdded() && getContext() != null) {
+                applyDynamicStylesRecursively(view);
+            }
+        });
         ((AppCompatActivity)getActivity()).getSupportActionBar().setTitle(R.string.settings);
     }
 
@@ -166,39 +168,84 @@ public class SettingsFragment extends Fragment {
             startActivityForResult(intent, REQUEST_CODE_WINLATOR_PATH);
         });
 
-        Button btChooseShortcutExportPath = view.findViewById(R.id.BTChooseShortcutExportPath);
-        TextView tvShortcutExportPath = view.findViewById(R.id.TVShortcutExportPath);
-
-        savedUriString = preferences.getString("shortcuts_export_path_uri", null);
-
-        if (savedUriString != null) {
-            Uri savedUri = Uri.parse(savedUriString);
-            String displayPath = FileUtils.getFilePathFromUri(context, savedUri);
-            tvShortcutExportPath.setText(displayPath != null ? displayPath : savedUriString);
-        }
-        else {
-            tvShortcutExportPath.setText(DEFAULT_SHORTCUT_EXPORT_PATH);
-        }
-
-        btChooseShortcutExportPath.setOnClickListener(v -> {
-            Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE);
-            startActivityForResult(intent, REQUEST_CODE_SHORTCUT_EXPORT_PATH);
-        });
-
         final Spinner sBox64Preset = view.findViewById(R.id.SBox64Preset);
-        loadBox64PresetSpinners(view, sBox64Preset);
-
         final Spinner sFEXCorePreset = view.findViewById(R.id.SFEXCorePreset);
-        loadFEXCorePresetSpinners(view, sFEXCorePreset);
-
         final Spinner sMIDISoundFont = view.findViewById(R.id.SMIDISoundFont);
-
-        sMIDISoundFont.setPopupBackgroundResource(isDarkMode ? R.drawable.content_dialog_background_dark : R.drawable.content_dialog_background);
-
         final View btInstallSF = view.findViewById(R.id.BTInstallSF);
         final View btRemoveSF = view.findViewById(R.id.BTRemoveSF);
 
-        MidiManager.loadSFSpinnerWithoutDisabled(sMIDISoundFont);
+        // Post heavy initialization to avoid blocking UI during transition
+        view.post(() -> {
+            if (isAdded() && getContext() != null) {
+                loadBox64PresetSpinners(view, sBox64Preset);
+                loadFEXCorePresetSpinners(view, sFEXCorePreset);
+                MidiManager.loadSFSpinnerWithoutDisabled(sMIDISoundFont);
+            }
+        });
+
+
+        sMIDISoundFont.setPopupBackgroundResource(isDarkMode ? R.drawable.content_dialog_background_dark : R.drawable.content_dialog_background);
+
+        final CheckBox cbUseDRI3 = view.findViewById(R.id.CBUseDRI3);
+        cbUseDRI3.setChecked(preferences.getBoolean("use_dri3", true));
+
+        final CheckBox cbUseXR = view.findViewById(R.id.CBUseXR);
+        cbUseXR.setChecked(preferences.getBoolean("use_xr", true));
+        if (!XrActivity.isSupported()) {
+            cbUseXR.setVisibility(View.GONE);
+        }
+
+        final CheckBox cbEnableWineDebug = view.findViewById(R.id.CBEnableWineDebug);
+        cbEnableWineDebug.setChecked(preferences.getBoolean("enable_wine_debug", false));
+
+        final ArrayList<String> wineDebugChannels = new ArrayList<>(Arrays.asList(preferences.getString("wine_debug_channels", DEFAULT_WINE_DEBUG_CHANNELS).split(",")));
+
+        final CheckBox cbEnableBox64Logs = view.findViewById(R.id.CBEnableBox64Logs);
+        cbEnableBox64Logs.setChecked(preferences.getBoolean("enable_box64_logs", false));
+
+        final TextView tvCursorSpeed = view.findViewById(R.id.TVCursorSpeed);
+        final SeekBar sbCursorSpeed = view.findViewById(R.id.SBCursorSpeed);
+        sbCursorSpeed.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                tvCursorSpeed.setText(progress+"%");
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {}
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {}
+        });
+        sbCursorSpeed.setProgress((int)(preferences.getFloat("cursor_speed", 1.0f) * 100));
+
+        final CheckBox cbEnableFileProvider = view.findViewById(R.id.CBEnableFileProvider);
+        final View btHelpFileProvider = view.findViewById(R.id.BTHelpFileProvider);
+
+        cbEnableFileProvider.setChecked(preferences.getBoolean("enable_file_provider", true));
+        cbEnableFileProvider.setOnClickListener(v -> AppUtils.showToast(context, R.string.take_effect_next_startup));
+        btHelpFileProvider.setOnClickListener(v -> AppUtils.showHelpBox(context, v, R.string.help_file_provider));
+
+        final CheckBox cbOpenInBrowser = view.findViewById(R.id.CBOpenWithAndroidBrowser);
+        cbOpenInBrowser.setChecked(preferences.getBoolean("open_with_android_browser", false));
+
+        final CheckBox cbShareClipboard = view.findViewById(R.id.CBShareAndroidClipboard);
+        cbShareClipboard.setChecked(preferences.getBoolean("share_android_clipboard", false));
+
+        final EditText etDownloadableContentsURL = view.findViewById(R.id.ETDownloadableContentsURL);
+        etDownloadableContentsURL.setText(preferences.getString("downloadable_contents_url", ContentsManager.REMOTE_PROFILES));
+
+        view.findViewById(R.id.BTReInstallImagefs).setOnClickListener(v -> {
+            ContentDialog.confirm(context, R.string.do_you_want_to_reinstall_imagefs, () -> ImageFsInstaller.installFromAssets((MainActivity) getActivity()));
+        });
+
+        // Post heavy initialization to avoid blocking UI
+        view.post(() -> {
+            if (isAdded() && getContext() != null) {
+                loadWineDebugChannels(view, wineDebugChannels);
+            }
+        });
+
         btInstallSF.setOnClickListener(v -> {
             installSoundFontCallback = uri -> {
                 PreloaderDialog dialog = new PreloaderDialog(requireActivity());
@@ -243,59 +290,7 @@ public class SettingsFragment extends Fragment {
                 AppUtils.showToast(context, R.string.cannot_remove_default_sound_font);
         });
 
-        final CheckBox cbUseDRI3 = view.findViewById(R.id.CBUseDRI3);
-        cbUseDRI3.setChecked(preferences.getBoolean("use_dri3", true));
 
-        final CheckBox cbUseXR = view.findViewById(R.id.CBUseXR);
-        cbUseXR.setChecked(preferences.getBoolean("use_xr", true));
-        if (!XrActivity.isSupported()) {
-            cbUseXR.setVisibility(View.GONE);
-        }
-
-        final CheckBox cbEnableWineDebug = view.findViewById(R.id.CBEnableWineDebug);
-        cbEnableWineDebug.setChecked(preferences.getBoolean("enable_wine_debug", false));
-
-        final ArrayList<String> wineDebugChannels = new ArrayList<>(Arrays.asList(preferences.getString("wine_debug_channels", DEFAULT_WINE_DEBUG_CHANNELS).split(",")));
-        loadWineDebugChannels(view, wineDebugChannels);
-
-        final CheckBox cbEnableBox64Logs = view.findViewById(R.id.CBEnableBox64Logs);
-        cbEnableBox64Logs.setChecked(preferences.getBoolean("enable_box64_logs", false));
-
-        final TextView tvCursorSpeed = view.findViewById(R.id.TVCursorSpeed);
-        final SeekBar sbCursorSpeed = view.findViewById(R.id.SBCursorSpeed);
-        sbCursorSpeed.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
-            @Override
-            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                tvCursorSpeed.setText(progress+"%");
-            }
-
-            @Override
-            public void onStartTrackingTouch(SeekBar seekBar) {}
-
-            @Override
-            public void onStopTrackingTouch(SeekBar seekBar) {}
-        });
-        sbCursorSpeed.setProgress((int)(preferences.getFloat("cursor_speed", 1.0f) * 100));
-
-        final CheckBox cbEnableFileProvider = view.findViewById(R.id.CBEnableFileProvider);
-        final View btHelpFileProvider = view.findViewById(R.id.BTHelpFileProvider);
-
-        cbEnableFileProvider.setChecked(preferences.getBoolean("enable_file_provider", true));
-        cbEnableFileProvider.setOnClickListener(v -> AppUtils.showToast(context, R.string.take_effect_next_startup));
-        btHelpFileProvider.setOnClickListener(v -> AppUtils.showHelpBox(context, v, R.string.help_file_provider));
-
-        final CheckBox cbOpenInBrowser = view.findViewById(R.id.CBOpenWithAndroidBrowser);
-        cbOpenInBrowser.setChecked(preferences.getBoolean("open_with_android_browser", false));
-
-        final CheckBox cbShareClipboard = view.findViewById(R.id.CBShareAndroidClipboard);
-        cbShareClipboard.setChecked(preferences.getBoolean("share_android_clipboard", false));
-
-        final EditText etDownloadableContentsURL = view.findViewById(R.id.ETDownloadableContentsURL);
-        etDownloadableContentsURL.setText(preferences.getString("downloadable_contents_url", ContentsManager.REMOTE_PROFILES));
-
-        view.findViewById(R.id.BTReInstallImagefs).setOnClickListener(v -> {
-            ContentDialog.confirm(context, R.string.do_you_want_to_reinstall_imagefs, () -> ImageFsInstaller.installFromAssets((MainActivity) getActivity()));
-        });
 
         view.findViewById(R.id.BTConfirm).setOnClickListener((v) -> {
             SharedPreferences.Editor editor = preferences.edit();
@@ -322,7 +317,6 @@ public class SettingsFragment extends Fragment {
             } else if (preferences.contains("wine_debug_channels")) {
                 editor.remove("wine_debug_channels");
             }
-            else if (preferences.contains("wine_debug_channels")) editor.remove("wine_debug_channels");
 
             if (editor.commit()) {
                 NavigationView navigationView = getActivity().findViewById(R.id.NavigationView);
@@ -372,12 +366,6 @@ public class SettingsFragment extends Fragment {
 
         TextView themeLabel = view.findViewById(R.id.TVTheme);
         applyFieldSetLabelStyle(themeLabel, isDarkMode);
-
-        TextView shortcutSettingsLabel = view.findViewById(R.id.TVShortcutSettings);
-        applyFieldSetLabelStyle(shortcutSettingsLabel, isDarkMode);
-
-//        TextView shortcutSettingsLabel = view.findViewById(R.id.TVShortcutSettings);
-//        applyFieldSetLabelStyle(shortcutSettingsLabel, isDarkMode);
 
         // Inputs tab labels
         TextView xServerLabel = view.findViewById(R.id.TVXServer);
@@ -641,29 +629,6 @@ public class SettingsFragment extends Fragment {
                         TextView tvWinlatorPath = getView().findViewById(R.id.TVWinlatorPath);
                         tvWinlatorPath.setText(fullPath != null ? fullPath : uri.toString());
                         break;
-
-                    case REQUEST_CODE_SHORTCUT_EXPORT_PATH:
-                        editor.putString("shortcuts_export_path_uri", uri.toString());
-                        editor.apply();
-
-                        // Take persistable URI permission
-                        try {
-                            // Take persistable URI permission with explicit flags
-                            requireContext().getContentResolver().takePersistableUriPermission(
-                                    uri,
-                                    Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION
-                            );
-                        } catch (SecurityException e) {
-                            AppUtils.showToast(getContext(), "Unable to take persistable permissions: " + e.getMessage());
-                        }
-
-                        // Convert the URI to an absolute path and display it
-                        String path = FileUtils.getFilePathFromUri(getContext(), uri);
-
-                        // Update the TextView with the absolute path or URI string if conversion fails
-                        TextView tvShortcutExportPath = getView().findViewById(R.id.TVShortcutExportPath);
-                        tvShortcutExportPath.setText(path != null ? path : uri.toString());
-
 
 
                     // Case for installing a SoundFont

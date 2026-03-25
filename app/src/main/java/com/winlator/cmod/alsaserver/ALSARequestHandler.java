@@ -7,12 +7,13 @@ import com.winlator.cmod.xconnector.XConnectorEpoll;
 import com.winlator.cmod.xconnector.XInputStream;
 import com.winlator.cmod.xconnector.XOutputStream;
 import com.winlator.cmod.xconnector.XStreamLock;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
 public class ALSARequestHandler implements RequestHandler {
-    private int maxSHMemoryId = 0;
+    private final AtomicInteger maxSharedMemoryId = new AtomicInteger(0);
 
     @Override
     public boolean handleRequest(Client client) throws IOException {
@@ -73,7 +74,7 @@ public class ALSARequestHandler implements RequestHandler {
 
     private void createSharedMemory(ALSAClient alsaClient, XOutputStream outputStream) throws IOException {
         int size = alsaClient.getBufferSizeInBytes();
-        int fd = SysVSharedMemory.createMemoryFd("alsa-shm"+(++maxSHMemoryId), size);
+        int fd = SysVSharedMemory.createMemoryFd("alsa-shm"+(maxSharedMemoryId.incrementAndGet()), size);
 
         if (fd >= 0) {
             ByteBuffer buffer = SysVSharedMemory.mapSHMSegment(fd, size, 0, true);

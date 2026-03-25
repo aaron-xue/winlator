@@ -188,32 +188,10 @@ public class ShortcutsFragment extends Fragment {
                         }
                     });
                 }
-                else if (itemId == R.id.shortcut_clone_to_container) {
-                    // Use the ContainerManager to get the list of containers
-                    ContainerManager containerManager = new ContainerManager(context);
-                    ArrayList<Container> containers = containerManager.getContainers();
-
-                    // Show a container selection dialog
-                    showContainerSelectionDialog(containers, new OnContainerSelectedListener() {
-                        @Override
-                        public void onContainerSelected(Container selectedContainer) {
-                            // Use the selected container to clone the shortcut
-                            if (shortcut.cloneToContainer(selectedContainer)) {
-                                Toast.makeText(context, "Shortcut cloned successfully.", Toast.LENGTH_SHORT).show();
-                                loadShortcutsList(); // Reload the shortcuts to show the cloned one
-                            } else {
-                                Toast.makeText(context, "Failed to clone shortcut.", Toast.LENGTH_SHORT).show();
-                            }
-                        }
-                    });
-                }
                 else if (itemId == R.id.shortcut_add_to_home_screen) {
                     if (shortcut.getExtra("uuid").equals(""))
                         shortcut.genUUID();
                     addShortcutToScreen(shortcut);
-                }
-                else if (itemId == R.id.shortcut_export) {
-                    exportShortcut(shortcut);
                 }
                 else if (itemId == R.id.shortcut_properties) {
                     showShortcutProperties(shortcut);
@@ -227,27 +205,6 @@ public class ShortcutsFragment extends Fragment {
         // Define the listener interface for selecting a container
         public interface OnContainerSelectedListener {
             void onContainerSelected(Container container);
-        }
-
-        private void showContainerSelectionDialog(ArrayList<Container> containers, OnContainerSelectedListener listener) {
-            // Create an AlertDialog to show the list of containers
-            AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
-            builder.setTitle("Select a container");
-
-            // Create an array of container names to display
-            String[] containerNames = new String[containers.size()];
-            for (int i = 0; i < containers.size(); i++) {
-                containerNames[i] = containers.get(i).getName();
-            }
-
-            // Set up the list in the dialog
-            builder.setItems(containerNames, (dialog, which) -> {
-                // Call the listener when a container is selected
-                listener.onContainerSelected(containers.get(which));
-            });
-
-            // Show the dialog
-            builder.show();
         }
 
         private void runFromShortcut(Shortcut shortcut) {
@@ -264,83 +221,6 @@ public class ShortcutsFragment extends Fragment {
                 activity.startActivity(intent);
             }
             else XrActivity.openIntent(activity, shortcut.container.id, shortcut.file.getPath());
-        }
-
-        private void exportShortcut(Shortcut shortcut) {
-            // Check for a custom frontend export path in shared preferences
-            SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getContext());
-            String uriString = sharedPreferences.getString("shortcuts_export_path_uri", null);
-
-            File shortcutsDir;
-
-            if (uriString != null) {
-                // If custom URI is set, use it
-                Uri folderUri = Uri.parse(uriString);
-                DocumentFile pickedDir = DocumentFile.fromTreeUri(getContext(), folderUri);
-
-                if (pickedDir == null || !pickedDir.canWrite()) {
-                    Toast.makeText(getContext(), "Cannot write to the selected folder", Toast.LENGTH_SHORT).show();
-                    return;
-                }
-
-                shortcutsDir = new File(FileUtils.getFilePathFromUri(getContext(), folderUri));
-            } else {
-                shortcutsDir = new File(SettingsFragment.DEFAULT_SHORTCUT_EXPORT_PATH);
-            }
-
-            if (!shortcutsDir.exists() && !shortcutsDir.mkdirs()) {
-                Toast.makeText(getContext(), "Failed to create default directory", Toast.LENGTH_SHORT).show();
-                return;
-            }
-
-            File exportFile = new File(shortcutsDir, shortcut.file.getName());
-
-            boolean fileExists = exportFile.exists();
-            boolean containerIdFound = false;
-
-            try {
-                List<String> lines = new ArrayList<>();
-
-                try (BufferedReader reader = new BufferedReader(new FileReader(shortcut.file))) {
-                    String line;
-                    while ((line = reader.readLine()) != null) {
-                        if (line.startsWith("container_id:")) {
-                            lines.add("container_id:" + shortcut.container.id);
-                            containerIdFound = true;
-                        } else {
-                            lines.add(line);
-                        }
-                    }
-                }
-
-                if (!containerIdFound) {
-                    lines.add("container_id:" + shortcut.container.id);
-                }
-
-                try (FileWriter writer = new FileWriter(exportFile, false)) {
-                    for (String line : lines) {
-                        writer.write(line + "\n");
-                    }
-                    writer.flush();
-                }
-
-                Log.d("ShortcutsFragment", "Shortcut exported successfully to " + exportFile.getPath());
-
-                // Determine the toast message
-                String message;
-                if (fileExists) {
-                    message = "Shortcut Updated at " + exportFile.getPath();
-                } else {
-                    message = "Shortcut Exported to " + exportFile.getPath();
-                }
-
-                // Show a toast message to the user
-                Toast.makeText(getContext(), message, Toast.LENGTH_LONG).show();
-
-            } catch (IOException e) {
-                Log.e("ShortcutsFragment", "Failed to export shortcut", e);
-                Toast.makeText(getContext(), "Failed to export shortcut", Toast.LENGTH_LONG).show();
-            }
         }
 
         private void showShortcutProperties(Shortcut shortcut) {

@@ -338,12 +338,12 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             fragmentManager.beginTransaction()
                     .setCustomAnimations(R.anim.fade_in, R.anim.fade_out)
                     .replace(R.id.FLFragmentContainer, fragment)
-                    .commit();
+                    .commitAllowingStateLoss();
         } else {
             fragmentManager.beginTransaction()
                     .setCustomAnimations(R.anim.fade_in, R.anim.fade_out)
                     .replace(R.id.FLFragmentContainer, fragment)
-                    .commit();
+                    .commitAllowingStateLoss();
         }
 
         drawerLayout.closeDrawer(GravityCompat.START);
@@ -370,8 +370,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
             String creditsAndThirdPartyAppsHTML = String.join("<br />",
                     "Winlator Cmod by coffincolors, me (<a href=\"https://github.com/coffincolors/winlator\">Fork</a>, <a href=\"https://github.com/Pipetto-crypto/winlator\">Fork</a>)",
-                    "Big Picture Mode Music by",
-                    "Dale Melvin Blevens III (Fumer)",
                     "---",
                     "Termux Package(<a href=\"https://github.com/termux/termux-packages\">github.com/termux/termux-package</a>)",
                     "Wine (<a href=\"https://www.winehq.org\">winehq.org</a>)",

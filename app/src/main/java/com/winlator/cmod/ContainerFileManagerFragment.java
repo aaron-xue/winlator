@@ -71,6 +71,7 @@ public class ContainerFileManagerFragment extends BaseFileManagerFragment<FileIn
         }
     }
 
+    @SuppressWarnings("unchecked")
     @Override // com.winlator.BaseFileManagerFragment
     public void refreshContent() {
         super.refreshContent();
@@ -87,6 +88,7 @@ public class ContainerFileManagerFragment extends BaseFileManagerFragment<FileIn
         refreshViewStyleMenuItem(menu.findItem(R.id.menu_item_view_style));
     }
 
+    @SuppressWarnings("unchecked")
     public ArrayList<FileInfo> loadFiles(Container container, FileInfo parent) {
         ArrayList<FileInfo> fileInfos = new ArrayList<>();
         if (parent != null) {
@@ -107,6 +109,7 @@ public class ContainerFileManagerFragment extends BaseFileManagerFragment<FileIn
         return fileInfos;
     }
 
+    @SuppressWarnings("unchecked")
     private void createFolder() {
         clearClipboard();
         if (this.folderStack.isEmpty()) {
@@ -154,11 +157,10 @@ public class ContainerFileManagerFragment extends BaseFileManagerFragment<FileIn
                 try (PrintWriter writer = new PrintWriter(new FileWriter(desktopFile))) {
                     writer.println("[Desktop Entry]");
                     writer.println("Name=" + displayName);
-                    writer.println("Exec=env WINEPREFIX=" + "\"" + imageFs.wineprefix + "\"" + " wine " + unixPath);
+                    writer.println(String.format("Exec=env WINEPREFIX=\"%s\" wine %s", imageFs.wineprefix, unixPath));
                     writer.println("Type=Application");
                     writer.println("Icon=" + displayName);
                     writer.println("container_id:" + container.id);
-                    writer.close();
                 }
                 AppUtils.showToast(context, R.string.file_added_to_desktop);
             }
@@ -168,6 +170,7 @@ public class ContainerFileManagerFragment extends BaseFileManagerFragment<FileIn
         
     }
 
+    @SuppressWarnings("unchecked")
     @Override // com.winlator.BaseFileManagerFragment
     protected void pasteFiles() {
         if (folderStack.isEmpty()) {
@@ -206,6 +209,7 @@ public class ContainerFileManagerFragment extends BaseFileManagerFragment<FileIn
         }
     }
 
+    @SuppressWarnings("unchecked")
     private void setCurrentWorkingPath(String dosPath) {
         String[] names = StringUtils.removeEndSlash(dosPath).split("\\\\");
         String basePath = "";
@@ -224,6 +228,7 @@ public class ContainerFileManagerFragment extends BaseFileManagerFragment<FileIn
         updateActionBarTitle();
     }
 
+    @SuppressWarnings("unchecked")
     private String getCurrentWorkingPath() {
         if (!folderStack.isEmpty()) {
             StringBuilder sb = new StringBuilder();
@@ -330,13 +335,14 @@ public class ContainerFileManagerFragment extends BaseFileManagerFragment<FileIn
             return new ViewHolder(LayoutInflater.from(parent.getContext()).inflate(resource, parent, false));
         }
 
+        @SuppressWarnings("unchecked")
         @Override // androidx.recyclerview.widget.RecyclerView.Adapter
         public void onBindViewHolder(ViewHolder holder, int position) {
             Context context = getContext();
             final FileInfo item = this.data.get(position);
             FileInfo.Type type = item.type;
-            if (item.type == FileInfo.Type.DRIVE) {
-                String driveText = getContext().getString(R.string.drive);
+            if (type == FileInfo.Type.DRIVE) {
+                String driveText = context != null ? context.getString(R.string.drive) : "Drive";
                 holder.title.setText(driveText + " (" + item.name + ")");
             } else {
                 MSLink.Options linkInfo = item.getLinkinfo();
@@ -451,6 +457,7 @@ public class ContainerFileManagerFragment extends BaseFileManagerFragment<FileIn
             return this.data.size();
         }
 
+        @SuppressWarnings("unchecked")
         private void openFile(FileInfo file) {
             Activity activity = getActivity();
             MSLink.Options linkInfo = file.getLinkinfo();

@@ -648,7 +648,6 @@ E.g. <b>META</b> for <i>META key</i>, \n
     <string name="dark_mode">Enable Dark Mode</string>
     <string name="winlator_path">Winlator Path</string>
     <string name="choose_path">Choose Path</string>
-    <string name="shortcut_export_path">Shortcut Export Path</string>
     <string name="path_settings">Path Settings</string>
     <string name="gyroscope">Gyroscope</string>
     <string name="enable_right_stick_gyroscope">Enable Right-Stick Gyroscope (Experimental)</string>

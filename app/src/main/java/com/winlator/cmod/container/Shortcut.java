@@ -242,49 +242,6 @@ import java.nio.file.Files;
             Log.d("Shortcut", "Shortcut state saved after removing custom cover art. Current path: " + customCoverArtPath);
         }
 
-        public boolean cloneToContainer(Container newContainer) {
-            try {
-                // Define the path for the new .desktop file in the new container
-                File newShortcutFile = new File(newContainer.getDesktopDir(), this.file.getName());
-
-                // Read the existing .desktop file
-                ArrayList<String> lines = FileUtils.readLines(this.file);
-
-                // Prepare the content for the new .desktop file with updated container_id
-                StringBuilder updatedContent = new StringBuilder();
-                boolean containerIdFound = false;
-
-                for (String line : lines) {
-                    if (line.startsWith("container_id:")) {
-                        // Update the container_id to the new container
-                        updatedContent.append("container_id:").append(newContainer.id).append("\n");
-                        containerIdFound = true;
-                    } else {
-                        updatedContent.append(line).append("\n");
-                    }
-                }
-
-                // If the container_id wasn't found in the original file, add it
-                if (!containerIdFound) {
-                    updatedContent.append("container_id:").append(newContainer.id).append("\n");
-                }
-
-                // Write the updated content to the new .desktop file
-                FileUtils.writeString(newShortcutFile, updatedContent.toString());
-
-                // Optionally copy the icon if it exists
-                if (this.iconFile != null && this.iconFile.isFile()) {
-                    File newIconFile = new File(newContainer.getIconsDir(64), this.iconFile.getName());
-                    FileUtils.copy(this.iconFile, newIconFile);
-                }
-
-                return true;
-            } catch (Exception e) {
-                Log.e("Shortcut", "Failed to clone shortcut to new container", e);
-                return false;
-            }
-        }
-
 
         public int getContainerId() {
             return container.id;

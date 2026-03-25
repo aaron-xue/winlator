@@ -1088,6 +1088,7 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
             );
         } else if (audioDriver.equals("pulseaudio")) {
             envVars.put("PULSE_SERVER", rootPath + UnixSocketConfig.PULSE_SERVER_PATH);
+            envVars.put("PULSEAUDIO_LATENCY_MSEC", "60");
             environment.addComponent(
                     new PulseAudioComponent(
                             UnixSocketConfig.createSocket(rootPath, UnixSocketConfig.PULSE_SERVER_PATH)

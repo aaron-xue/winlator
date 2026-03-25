@@ -1,203 +1,125 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="horizontal"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
     android:paddingTop="4dp"
     android:paddingBottom="4dp"
-    android:paddingLeft="10dp"
-    android:paddingRight="10dp"
-    android:gravity="center_horizontal"
-    android:layout_gravity="center_horizontal"
+    android:paddingStart="10dp"
+    android:paddingEnd="10dp"
     android:background="@drawable/frame_rating_round_corners">
 
-    <LinearLayout
-        android:layout_width="50dp"
+    <!-- Renderer -->
+    <TextView
+        android:id="@+id/TVRenderer"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:gravity="center_vertical|left">
+        android:minWidth="50dp"
+        style="@style/StatsTextBase.Value"
+        android:textColor="@color/stats_renderer"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent" />
 
-        <TextView
-            android:id="@+id/TVRenderer"
-            android:layout_width="50dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:textStyle="bold"
-            android:textSize="10sp"
-            android:textColor="#A12650"
-            android:includeFontPadding="false"
-            android:maxLines="1"
-            android:fontFamily="monospace" />
-    </LinearLayout>
-    <LinearLayout
-        android:layout_width="85dp"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:gravity="center_vertical|left">
+    <!-- CPU Label & Value -->
+    <TextView
+        android:id="@+id/TVCPULabel"
+        style="@style/StatsTextBase.Label"
+        android:text="CPU:"
+        android:textColor="@color/stats_cpu"
+        app:layout_constraintStart_toEndOf="@id/TVRenderer"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent" />
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:textStyle="bold"
-            android:textSize="10sp"
-            android:text="CPU:"
-            android:textColor="#AB9231"
-            android:includeFontPadding="false"
-            android:maxLines="1"
-            android:fontFamily="monospace" />
+    <TextView
+        android:id="@+id/TVCPU"
+        style="@style/StatsTextBase.Value"
+        app:layout_constraintStart_toEndOf="@id/TVCPULabel"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent" />
 
-        <TextView
-            android:id="@+id/TVCPU"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:textStyle="bold"
-            android:textSize="10sp"
-            android:textColor="#ffffff"
-            android:includeFontPadding="false"
-            android:maxLines="1"
-            android:fontFamily="monospace" />
-    </LinearLayout>
+    <!-- RAM Label & Value -->
+    <TextView
+        android:id="@+id/TVRAMLabel"
+        style="@style/StatsTextBase.Label"
+        android:text="RAM:"
+        android:textColor="@color/stats_ram"
+        app:layout_constraintStart_toEndOf="@id/TVCPU"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        android:layout_marginStart="10dp" />
 
-    <LinearLayout
-        android:layout_width="85dp"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:gravity="center_vertical|left">
+    <TextView
+        android:id="@+id/TVRAM"
+        style="@style/StatsTextBase.Value"
+        app:layout_constraintStart_toEndOf="@id/TVRAMLabel"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent" />
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:textStyle="bold"
-            android:textSize="10sp"
-            android:text="RAM:"
-            android:textColor="#43B7EA"
-            android:includeFontPadding="false"
-            android:maxLines="1"
-            android:fontFamily="monospace"/>
+    <!-- TMP Label & Value -->
+    <TextView
+        android:id="@+id/TVTMPLabel"
+        style="@style/StatsTextBase.Label"
+        android:text="TMP:"
+        android:textColor="@color/stats_temp"
+        app:layout_constraintStart_toEndOf="@id/TVRAM"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        android:layout_marginStart="10dp" />
 
-        <TextView
-            android:id="@+id/TVRAM"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:textStyle="bold"
-            android:textSize="10sp"
-            android:textColor="#ffffff"
-            android:includeFontPadding="false"
-            android:maxLines="1"
-            android:fontFamily="monospace" />
-    </LinearLayout>
+    <TextView
+        android:id="@+id/TVTMP"
+        style="@style/StatsTextBase.Value"
+        app:layout_constraintStart_toEndOf="@id/TVTMPLabel"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent" />
 
-    <LinearLayout
-        android:layout_width="85dp"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:gravity="center_vertical|left">
+    <!-- POW Label & Value -->
+    <TextView
+        android:id="@+id/TVPOWERLabel"
+        style="@style/StatsTextBase.Label"
+        android:text="POW:"
+        android:textColor="@color/stats_power"
+        app:layout_constraintStart_toEndOf="@id/TVTMP"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        android:layout_marginStart="10dp" />
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:textStyle="bold"
-            android:textSize="10sp"
-            android:text="TMP:"
-            android:textColor="#BB2F39"
-            android:includeFontPadding="false"
-            android:maxLines="1" 
-            android:fontFamily="monospace"/>
+    <TextView
+        android:id="@+id/TVPOWER"
+        style="@style/StatsTextBase.Value"
+        app:layout_constraintStart_toEndOf="@id/TVPOWERLabel"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent" />
 
-        <TextView
-            android:id="@+id/TVTMP"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:textStyle="bold"
-            android:textSize="10sp"
-            android:textColor="#ffffff"
-            android:includeFontPadding="false"
-            android:maxLines="1"
-            android:fontFamily="monospace" />
-    </LinearLayout>
-    
-    <LinearLayout
-        android:layout_width="105dp"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:gravity="center_vertical|left">
+    <!-- FPS Label & Value -->
+    <TextView
+        android:id="@+id/TVFPSLabel"
+        style="@style/StatsTextBase.Label"
+        android:text="FPS:"
+        android:textColor="@color/stats_fps"
+        app:layout_constraintStart_toEndOf="@id/TVPOWER"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        android:layout_marginStart="10dp" />
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:textStyle="bold"
-            android:textSize="10sp"
-            android:text="POW:"
-            android:textColor="#734797"
-            android:includeFontPadding="false"
-            android:maxLines="1"
-            android:fontFamily="monospace" />
+    <TextView
+        android:id="@+id/TVFPS"
+        style="@style/StatsTextBase.Value"
+        app:layout_constraintStart_toEndOf="@id/TVFPSLabel"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent" />
 
-        <TextView
-            android:id="@+id/TVPOWER"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:textStyle="bold"
-            android:textSize="10sp"
-            android:textColor="#ffffff"
-            android:includeFontPadding="false"
-            android:maxLines="1"
-            android:fontFamily="monospace" />
-    </LinearLayout>
-    <LinearLayout
-        android:layout_width="70dp"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:gravity="center_vertical|left">
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:textStyle="bold"
-            android:textSize="10sp"
-            android:text="FPS:"
-            android:textColor="#DFEF5D"
-            android:includeFontPadding="false"
-            android:maxLines="1"
-            android:fontFamily="monospace" />
-
-        <TextView
-            android:id="@+id/TVFPS"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:textStyle="bold"
-            android:textSize="10sp"
-            android:textColor="#ffffff"
-            android:includeFontPadding="false"
-            android:maxLines="1"
-            android:fontFamily="monospace" />
-    </LinearLayout>
-    <LinearLayout
+    <!-- TIME -->
+    <TextView
+        android:id="@+id/TVTIME"
         android:layout_width="35dp"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:gravity="center_vertical|left">
+        style="@style/StatsTextBase.Value"
+        android:textColor="@color/stats_time"
+        app:layout_constraintStart_toEndOf="@id/TVFPS"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        android:layout_marginStart="10dp" />
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:id="@+id/TVTIME"
-            android:textStyle="bold"
-            android:textSize="10sp"
-            android:textColor="#72EC11"
-            android:includeFontPadding="false"
-            android:maxLines="1"
-            android:fontFamily="monospace" />
-    </LinearLayout>
-</LinearLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>
