@@ -69,8 +69,9 @@ public class TouchpadView extends View {
         super(context);
         this.xServer = xServer;
 
-        this.timeoutHandler = timeoutHandler; // Store the reference to timeout handler
-        this.hideControlsRunnable = hideControlsRunnable; // Store the reference to the hide controls runnable
+        this.timeoutHandler = timeoutHandler;
+        this.hideControlsRunnable = hideControlsRunnable;
+        this.preferences = PreferenceManager.getDefaultSharedPreferences(context);
 
         setLayoutParams(new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
         setBackground(createTransparentBg());
@@ -79,11 +80,6 @@ public class TouchpadView extends View {
         setFocusableInTouchMode(false);
         setPointerIcon(PointerIcon.load(getResources(), R.drawable.hidden_pointer_arrow));
         updateXform(AppUtils.getScreenWidth(), AppUtils.getScreenHeight(), xServer.screenInfo.width, xServer.screenInfo.height);
-        // Initialize SharedPreferences here
-        this.preferences = PreferenceManager.getDefaultSharedPreferences(context);
-
-        this.timeoutHandler = timeoutHandler; // Store the reference to timeout handler
-        this.hideControlsRunnable = hideControlsRunnable; // Store the reference to the hide controls runnable
 
         // Set up the generic motion listener for hover events
         setOnGenericMotionListener(new OnGenericMotionListener() {
@@ -187,6 +183,15 @@ public class TouchpadView extends View {
         }
     }
 
+    @Override
+    protected void onDetachedFromWindow() {
+        super.onDetachedFromWindow();
+        // Clear pending timeout callbacks when view is detached
+        if (timeoutHandler != null && hideControlsRunnable != null) {
+            timeoutHandler.removeCallbacks(hideControlsRunnable);
+        }
+    }
+
     private void resetTouchscreenTimeout() {
         //Log.d("TouchpadView", "Touch detected, resetting timeout.");
         if (timeoutHandler != null && hideControlsRunnable != null) {
@@ -258,6 +263,8 @@ public class TouchpadView extends View {
     }
 
     private void handleStylusUp(MotionEvent event) {
+        // On ACTION_UP, buttonState is typically 0 since button is released
+        // We should release both buttons as we don't track which was pressed
         xServer.injectPointerButtonRelease(Pointer.Button.BUTTON_LEFT);
         xServer.injectPointerButtonRelease(Pointer.Button.BUTTON_RIGHT);
     }
@@ -332,14 +339,16 @@ public class TouchpadView extends View {
                 break;
             case MotionEvent.ACTION_UP:
             case MotionEvent.ACTION_POINTER_UP:
-                if (fingers[pointerId] != null) {
-                    fingers[pointerId].update(event.getX(actionIndex), event.getY(actionIndex));
-                    handleFingerUp(fingers[pointerId]);
+                Finger finger = fingers[pointerId];
+                if (finger != null) {
+                    finger.update(event.getX(actionIndex), event.getY(actionIndex));
+                    handleFingerUp(finger);
                     fingers[pointerId] = null;
                     numFingers--;
                 }
                 break;
             case MotionEvent.ACTION_CANCEL:
+                removeCallbacks(null); // Clear all pending callbacks
                 for (byte i = 0; i < MAX_FINGERS; i++) fingers[i] = null;
                 numFingers = 0;
                 break;
@@ -698,8 +707,12 @@ public class TouchpadView extends View {
     }
 
     public void toggleFullscreen() {
-        new Handler().postDelayed(() -> updateXform(getWidth(), getHeight(), xServer.screenInfo.width, xServer.screenInfo.height),
-                UPDATE_FORM_DELAYED_TIME);
+        if (timeoutHandler != null) {
+            timeoutHandler.postDelayed(() -> updateXform(getWidth(), getHeight(), xServer.screenInfo.width, xServer.screenInfo.height),
+                    UPDATE_FORM_DELAYED_TIME);
+        } else {
+            updateXform(getWidth(), getHeight(), xServer.screenInfo.width, xServer.screenInfo.height);
+        }
     }
 
     public void setMouseEnabled(boolean enabled) {

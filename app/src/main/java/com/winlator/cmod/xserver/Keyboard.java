@@ -101,7 +101,6 @@ public class Keyboard {
         if (xKeycode == null) return false;
         if(Build.BRAND.equals("Xiaomi")&&keyCode==KeyEvent.KEYCODE_SPACE){
              xServer.injectKeyPress(xKeycode, event.getUnicodeChar());
-             sleep(50);
              xServer.injectKeyRelease(xKeycode);
              return true;
         }
@@ -381,7 +380,7 @@ public class Keyboard {
         try {
             Thread.sleep(ms);
         } catch (InterruptedException e) {
-            e.printStackTrace();
+            Thread.currentThread().interrupt();
         }
     }
 }

@@ -88,7 +88,12 @@ public abstract class MSLink {
         if (CountCharacters == 0) {
             return null;
         }
-        byte[] bytes = new byte[(isUnicode ? (short) 2 : (short) 1) * CountCharacters];
+        int byteCount = (isUnicode ? 2 : 1) * CountCharacters;
+        // Validate buffer has enough data to read
+        if (data.remaining() < byteCount) {
+            return null;
+        }
+        byte[] bytes = new byte[byteCount];
         data.get(bytes);
         String string = isUnicode ? new String(bytes, StandardCharsets.UTF_16LE) : new String(bytes);
         int indexOfNull = string.indexOf(0);

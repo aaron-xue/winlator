@@ -85,7 +85,7 @@ public class ControlElement {
     private PointF currentPosition;
     private RangeScroller scroller;
     private CubicBezierInterpolator interpolator;
-    private Object touchTime;
+    private Long touchTime;
 
     public ControlElement(InputControlsView inputControlsView) {
         this.inputControlsView = inputControlsView;
@@ -370,48 +370,13 @@ public class ControlElement {
                 if (isEngaged()){
                     paint.setStyle(Paint.Style.FILL);
                     paint.setColor(fillColor);
-                    switch (shape) {
-                        case CIRCLE:
-                            canvas.drawCircle(cx, cy, boundingBox.width() * 0.5f, paint);
-                            break;
-                        case RECT:
-                            canvas.drawRect(boundingBox, paint);
-                            break;
-                        case ROUND_RECT: {
-                            float radius = boundingBox.height() * 0.5f;
-                            canvas.drawRoundRect(boundingBox.left, boundingBox.top, boundingBox.right, boundingBox.bottom, radius, radius, paint);
-                            break;
-                        }
-                        case SQUARE: {
-                            float radius = snappingSize * 0.75f * scale;
-                            canvas.drawRoundRect(boundingBox.left, boundingBox.top, boundingBox.right, boundingBox.bottom, radius, radius, paint);
-                            break;
-                        }
-                    }
+                    drawButtonShape(canvas, paint, boundingBox, snappingSize, scale, shape, cx, cy);
                 }
 
                 paint.setStyle(Paint.Style.STROKE);
                 paint.setColor(selected ? inputControlsView.getSecondaryColor() : primaryColor);
                 paint.setStrokeWidth(strokeWidth);
-
-                switch (shape) {
-                    case CIRCLE:
-                        canvas.drawCircle(cx, cy, boundingBox.width() * 0.5f, paint);
-                        break;
-                    case RECT:
-                        canvas.drawRect(boundingBox, paint);
-                        break;
-                    case ROUND_RECT: {
-                        float r = boundingBox.height() * 0.5f;
-                        canvas.drawRoundRect(boundingBox.left, boundingBox.top, boundingBox.right, boundingBox.bottom, r, r, paint);
-                        break;
-                    }
-                    case SQUARE: {
-                        float r = snappingSize * 0.75f * scale;
-                        canvas.drawRoundRect(boundingBox.left, boundingBox.top, boundingBox.right, boundingBox.bottom, r, r, paint);
-                        break;
-                    }
-                }
+                drawButtonShape(canvas, paint, boundingBox, snappingSize, scale, shape, cx, cy);
 
 
                 if (iconId > 0) {
@@ -530,7 +495,7 @@ public class ControlElement {
                         paint.setStyle(Paint.Style.STROKE);
                         paint.setColor(oldColor);
 
-                        if (startX > boundingBox.left && startX  < boundingBox.right) canvas.drawLine(startX, lineTop, startX, lineBottom, paint);
+                        if (startX > boundingBox.left && startX <= boundingBox.right) canvas.drawLine(startX, lineTop, startX, lineBottom, paint);
                         String text = getRangeTextForIndex(range, index);
 
                         if (startX < boundingBox.right && startX + elementSize > boundingBox.left) {
@@ -654,8 +619,8 @@ public class ControlElement {
 
             elementJSONObject.put("bindings", bindingsJSONArray);
             elementJSONObject.put("scale", Float.valueOf(scale));
-            elementJSONObject.put("x", (float)x / inputControlsView.getMaxWidth());
-            elementJSONObject.put("y", (float)y / inputControlsView.getMaxHeight());
+            elementJSONObject.put("x", (float)x / (float)inputControlsView.getMaxWidth());
+            elementJSONObject.put("y", (float)y / (float)inputControlsView.getMaxHeight());
             elementJSONObject.put("toggleSwitch", toggleSwitch);
             elementJSONObject.put("text", text);
             elementJSONObject.put("iconId", iconId);
@@ -801,7 +766,7 @@ public class ControlElement {
                     // Use unified stick input
                     inputControlsView.handleStickInput(firstBinding, finalX, finalY);
                     
-                    // Mark all as active
+                    // Mark all as active and update states for proper release handling
                     for (byte i = 0; i < 4; i++) {
                         this.states[i] = true;
                     }
@@ -873,9 +838,14 @@ public class ControlElement {
                 }
             }
             else if (type == Type.RANGE_BUTTON || type == Type.D_PAD || type == Type.STICK || type == Type.TRACKPAD) {
-                for (byte i = 0; i < states.length; i++) {
-                    if (states[i]) inputControlsView.handleInputEvent(getBindingAt(i), false);
-                    states[i] = false;
+                Binding firstBinding = getBindingAt(0);
+                if ((type == Type.STICK || type == Type.TRACKPAD) && firstBinding != null && firstBinding.isGamepad()) {
+                    inputControlsView.handleStickInput(firstBinding, 0, 0);
+                } else {
+                    for (byte i = 0; i < states.length; i++) {
+                        if (states[i]) inputControlsView.handleInputEvent(getBindingAt(i), false);
+                        states[i] = false;
+                    }
                 }
 
                 if (type == Type.RANGE_BUTTON) {
@@ -917,5 +887,26 @@ public class ControlElement {
             return currentPointerId != -1 || selected;
         }
         return currentPointerId != -1 || anyStateActive();
+    }
+
+    private void drawButtonShape(Canvas canvas, Paint paint, Rect boundingBox, int snappingSize, float scale, Shape shape, float cx, float cy) {
+        switch (shape) {
+            case CIRCLE:
+                canvas.drawCircle(cx, cy, boundingBox.width() * 0.5f, paint);
+                break;
+            case RECT:
+                canvas.drawRect(boundingBox, paint);
+                break;
+            case ROUND_RECT: {
+                float r = boundingBox.height() * 0.5f;
+                canvas.drawRoundRect(boundingBox.left, boundingBox.top, boundingBox.right, boundingBox.bottom, r, r, paint);
+                break;
+            }
+            case SQUARE: {
+                float r = snappingSize * 0.75f * scale;
+                canvas.drawRoundRect(boundingBox.left, boundingBox.top, boundingBox.right, boundingBox.bottom, r, r, paint);
+                break;
+            }
+        }
     }
 }
