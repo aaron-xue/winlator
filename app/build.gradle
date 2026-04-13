@@ -202,6 +202,7 @@ dependencies {
     implementation 'com.github.luben:zstd-jni:1.5.2-3@aar'
     implementation 'org.tukaani:xz:1.7'
     implementation 'org.apache.commons:commons-compress:1.27.1'
+    implementation 'com.github.luben:zstd-jni:1.5.7-7@aar'
     implementation 'androidx.activity:activity-ktx:1.4.0'
     implementation 'androidx.fragment:fragment-ktx:1.4.0'
     implementation files('libs/MidiSynth/MidiSynth.jar')
