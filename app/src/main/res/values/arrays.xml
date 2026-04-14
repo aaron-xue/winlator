@@ -24,6 +24,7 @@
     <string-array name="wrapper_graphics_driver_version_entries">
         <item>System</item>
         <item>turnip_Mar-12-2026_b97a1e6_patched</item>
+        <item>Turnip_Gen8_V27</item>
     </string-array>
     <string-array name="audio_driver_entries">
         <item>ALSA</item>
@@ -134,7 +135,7 @@
         <item>0.4.1</item>
     </string-array>
     <string-array name="fexcore_version_entries">
-        <item>2603</item>
+        <item>2604</item>
     </string-array>
     <string-array name="desktop_theme_entries">
         <item>Light</item>

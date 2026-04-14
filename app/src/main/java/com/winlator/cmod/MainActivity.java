@@ -2,7 +2,9 @@ package com.winlator.cmod;
 
 import android.Manifest;
 import android.app.AlertDialog;
+import android.app.ActivityManager;
 import android.content.Intent;
+import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
@@ -49,8 +51,15 @@ import com.winlator.cmod.container.ContainerManager;
 import com.winlator.cmod.core.WineThemeManager;
 import com.winlator.cmod.xenvironment.ImageFsInstaller;
 
+import com.winlator.cmod.core.FileUtils;
+import com.winlator.cmod.core.GPUInformation;
+
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
 import java.util.List;
+import java.util.Arrays;
 
 public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
     public static final @IntRange(from = 1, to = 19) byte CONTAINER_PATTERN_COMPRESSION_LEVEL = 9;
@@ -325,8 +334,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             case R.id.main_menu_saves:
                 showFragment(new SavesFragment(), false);  // Forward animation
                 break;
-            case R.id.main_menu_about:
-                showAboutDialog();
+            case R.id.main_menu_system_info:
+                showSystemInfoDialog();
                 break;
         }
         return true;
@@ -349,54 +358,112 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         drawerLayout.closeDrawer(GravityCompat.START);
     }
 
-    private void showAboutDialog() {
-        ContentDialog dialog = new ContentDialog(this, R.layout.about_dialog);
-        dialog.findViewById(R.id.LLBottomBar).setVisibility(View.GONE);
-
+    private void showSystemInfoDialog() {
+        ContentDialog dialog = new ContentDialog(this, R.layout.system_info_dialog);
         if (isDarkMode) {
             dialog.getWindow().setBackgroundDrawableResource(R.drawable.content_dialog_background_dark);
         } else {
             dialog.getWindow().setBackgroundDrawableResource(R.drawable.content_dialog_background);
         }
 
-        try {
-            final PackageInfo pInfo = getPackageManager().getPackageInfo(getPackageName(), 0);
-
-            TextView tvWebpage = dialog.findViewById(R.id.TVWebpage);
-            tvWebpage.setText(Html.fromHtml("<a href=\"https://www.winlator.org\">winlator.org</a>", Html.FROM_HTML_MODE_LEGACY));
-            tvWebpage.setMovementMethod(LinkMovementMethod.getInstance());
-
-            ((TextView) dialog.findViewById(R.id.TVAppVersion)).setText(getString(R.string.version) + " " + pInfo.versionName);
-
-            String creditsAndThirdPartyAppsHTML = String.join("<br />",
-                    "Winlator Cmod by coffincolors, me (<a href=\"https://github.com/coffincolors/winlator\">Fork</a>, <a href=\"https://github.com/Pipetto-crypto/winlator\">Fork</a>)",
-                    "---",
-                    "Termux Package(<a href=\"https://github.com/termux/termux-packages\">github.com/termux/termux-package</a>)",
-                    "Wine (<a href=\"https://www.winehq.org\">winehq.org</a>)",
-                    "Box64 (<a href=\"https://github.com/ptitSeb/box64\">github.com/ptitSeb/box64</a>)",
-                    "Mesa (Turnip/Zink/Wrapper) (<a href=\"https://github.com/xMeM/mesa/tree/wrapper\">github.com/xMeM/mesa</a>)",
-                    "DXVK (<a href=\"https://github.com/doitsujin/dxvk\">github.com/doitsujin/dxvk</a>)",
-                    "VKD3D (<a href=\"https://gitlab.winehq.org/wine/vkd3d\">gitlab.winehq.org/wine/vkd3d</a>)",
-                    "CNC DDraw (<a href=\"https://github.com/FunkyFr3sh/cnc-ddraw\">github.com/FunkyFr3sh/cnc-ddraw</a>)",
-                    "dxwrapper (<a href=\"https://github.com/elishacloud/dxwrapper\">github.com/elishacloud/dxwrapper</a>)",
-                    "FEX-Emu (<a href=\"https://github.com/FEX-Emu/FEX\">github.com/FEX-Emu/FEX</a>)",
-                    "libadrenotools (<a href=\"https://github.com/bylaws/libadrenotools\">github.com/bylaws/libadrenotools</a>)"
-            );
-
-            TextView tvCreditsAndThirdPartyApps = dialog.findViewById(R.id.TVCreditsAndThirdPartyApps);
-            tvCreditsAndThirdPartyApps.setText(Html.fromHtml(creditsAndThirdPartyAppsHTML, Html.FROM_HTML_MODE_LEGACY));
-            tvCreditsAndThirdPartyApps.setMovementMethod(LinkMovementMethod.getInstance());
-
-            String glibcExpVersionForkHTML = String.join("<br />",
-                    "longjunyu2's <a href=\"https://github.com/longjunyu2/winlator/tree/use-glibc-instead-of-proot\">(GLIBC Fork)</a>");
-            TextView tvGlibcExpVersionFork = dialog.findViewById(R.id.TVGlibcExpVersionFork);
-            tvGlibcExpVersionFork.setText(Html.fromHtml(glibcExpVersionForkHTML, Html.FROM_HTML_MODE_LEGACY));
-            tvGlibcExpVersionFork.setMovementMethod(LinkMovementMethod.getInstance());
-        } catch (PackageManager.NameNotFoundException e) {
-            e.printStackTrace();
+        StringBuilder sb = new StringBuilder();
+        sb.append("=== "+getString(R.string.general_information)+" ===").append(System.lineSeparator());
+        sb.append(getString(R.string.device_manufacturer)+'：'+Build.MANUFACTURER).append(System.lineSeparator());
+        sb.append(getString(R.string.device_model)+'：'+Build.MODEL).append(System.lineSeparator());
+        sb.append(getString(R.string.device_name)+'：'+Build.DEVICE).append(System.lineSeparator());
+        sb.append(getString(R.string.product)+'：'+Build.PRODUCT).append(System.lineSeparator());
+        sb.append(getString(R.string.hardware)+'：'+Build.HARDWARE).append(System.lineSeparator());
+        sb.append(getString(R.string.supported_abis)+'：'+ String.join(",", Arrays.toString(Build.SUPPORTED_ABIS))).append(System.lineSeparator());
+        sb.append(getString(R.string.android_version)+'：'+Build.VERSION.RELEASE+" API（"+Build.VERSION.SDK_INT+"）").append(System.lineSeparator());
+        sb.append(getString(R.string.android_security_patch)+'：'+Build.VERSION.SECURITY_PATCH).append(System.lineSeparator());
+        sb.append(getString(R.string.build_id)+'：'+Build.ID).append(System.lineSeparator()).append(System.lineSeparator());
+        sb.append("=== "+getString(R.string.cpu_info)+" ===").append(System.lineSeparator());
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && Build.SOC_MODEL != null && !Build.SOC_MODEL.trim().isEmpty()) {
+            sb.append(getString(R.string.soc)+" "+Build.SOC_MODEL);
         }
+        sb.append(System.lineSeparator()).append(getCpuInfoFromProc()).append(System.lineSeparator()).append(System.lineSeparator());
+        sb.append("=== "+getString(R.string.gpu_information)+" ===").append(System.lineSeparator());
+        sb.append(getGpuInfo()).append(System.lineSeparator());
+
+        // Memory Info
+        sb.append("=== "+getString(R.string.memory_info)+" ===").append(System.lineSeparator());
+
+        ActivityManager activityManager = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
+        ActivityManager.MemoryInfo memInfo = new ActivityManager.MemoryInfo();
+        activityManager.getMemoryInfo(memInfo);
+        long totalDeviceRam = memInfo.totalMem / (1024 * 1024);
+
+        sb.append(getString(R.string.total_memory)+"： "+totalDeviceRam+" MB");
+
+        TextView tVSystemInfo = dialog.findViewById(R.id.TVSystemInfo);
+        tVSystemInfo.setText(sb.toString());
 
         dialog.show();
+    }
+
+    private String getGpuInfo() {
+        StringBuilder gpuInfo = new StringBuilder();
+        try {
+            // Get GPU model via Vulkan API
+            String gpuModel = GPUInformation.getRenderer(null, this);
+            if (gpuModel != null && !gpuModel.isEmpty() && !gpuModel.equals("Unknown")) {
+                gpuInfo.append(getString(R.string.gpu_model)).append("：").append(gpuModel).append(System.lineSeparator());
+            }
+
+            // Get Vulkan version via Vulkan API
+            String vulkanVersion = GPUInformation.getVulkanVersion(null, this);
+            if (vulkanVersion != null && !vulkanVersion.isEmpty() && !vulkanVersion.equals("Unknown")) {
+                gpuInfo.append(getString(R.string.vulkan_version)).append("：").append(vulkanVersion).append(System.lineSeparator());
+            }
+
+            // Get Vulkan driver version via Vulkan API
+            String driverVersion = GPUInformation.getDriverVersion(null, this);
+            if (driverVersion != null && !driverVersion.isEmpty() && !driverVersion.equals("Unknown")) {
+                gpuInfo.append(getString(R.string.vulkan_driver_version)).append("：").append(driverVersion).append(System.lineSeparator());
+            }
+        } catch (Exception e) {
+            gpuInfo.append("Unable to get GPU info: ").append(e.getMessage());
+        }
+        return gpuInfo.toString();
+    }
+
+    private String getCpuInfoFromProc() {
+        StringBuilder cpuInfo = new StringBuilder();
+        StringBuilder variant = new StringBuilder();
+        try {
+            BufferedReader reader = new BufferedReader(new FileReader("/proc/cpuinfo"));
+            String line;
+            String cpuFeatures = null;
+            int processorCount = 0;
+
+            while ((line = reader.readLine()) != null) {
+                if (line.startsWith("processor")) {
+                    processorCount++;
+                }else if(line.startsWith("CPU variant")){
+                    String[] parts = line.split(":");
+                    if (parts.length > 1) {
+                        variant.append("CPU"+(processorCount-1)+"："+ parts[1].trim()).append(System.lineSeparator());
+                    }
+                } else if (line.startsWith("Features") || line.startsWith("flags")) {
+                    if (cpuFeatures == null) {
+                        String[] parts = line.split(":");
+                        if (parts.length > 1) {
+                            cpuFeatures = parts[1].trim();
+                        }
+                    }
+                }
+            }
+            reader.close();
+
+            cpuInfo.append(getString(R.string.cpu_cores)).append("：").append(processorCount).append(System.lineSeparator());
+            cpuInfo.append(variant.toString());
+            if (cpuFeatures != null && !cpuFeatures.isEmpty()) {
+                cpuInfo.append(getString(R.string.cpu_features)).append("：").append(cpuFeatures);
+            }
+        } catch (IOException e) {
+            cpuInfo.append("Unable to read /proc/cpuinfo: ").append(e.getMessage());
+        }
+        return cpuInfo.toString();
     }
 
     private void setNavigationViewItemTextColor(NavigationView navigationView, int color) {
