@@ -25,7 +25,7 @@ import com.winlator.cmod.xenvironment.ImageFs;
 import com.winlator.cmod.xserver.Window;
 import com.winlator.cmod.xserver.XLock;
 import com.winlator.cmod.xserver.XServer;
-
+import android.util.Log;
 import java.io.File;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -108,6 +108,7 @@ public class TaskManagerDialog extends ContentDialog implements OnGetProcessInfo
         cpuListView.setCheckedCPUList(processInfo.getCPUList());
         dialog.setOnConfirmCallback(() -> {
             WinHandler winHandler = activity.getWinHandler();
+            Log.d("XServerDisplayActivity", "processAffinity " + processInfo.pid);
             winHandler.setProcessAffinity(processInfo.pid, ProcessHelper.getAffinityMask(cpuListView.getCheckedCPUList()));
             update();
         });

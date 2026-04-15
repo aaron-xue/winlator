@@ -472,6 +472,7 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
 
             @Override
             public void onModifyWindowProperty(Window window, Property property) {
+                assignTaskAffinity(window);
                 if(container.isShowFPS()){
                     if (property.nameAsString().contains("_MESA_DRV_ENGINE_NAME")) {
                         runOnUiThread(() -> frameRating.setRenderer(property.toString()));
