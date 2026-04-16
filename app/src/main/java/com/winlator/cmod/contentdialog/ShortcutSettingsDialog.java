@@ -196,6 +196,7 @@ public class ShortcutSettingsDialog extends ContentDialog {
         final Runnable showInputWarning = () -> ContentDialog.alert(context, R.string.enable_xinput_and_dinput_same_time, null);
         final CheckBox cbEnableXInput = findViewById(R.id.CBEnableXInput);
         final CheckBox cbEnableDInput = findViewById(R.id.CBEnableDInput);
+        final CheckBox cbEnableVibration = findViewById(R.id.CBEnableVibration);
         final View btHelpXInput = findViewById(R.id.BTXInputHelp);
         final View btHelpDInput = findViewById(R.id.BTDInputHelp);
         int inputType = Integer.parseInt(shortcut.getExtra("inputType", String.valueOf(shortcut.container.getInputType())));
@@ -203,6 +204,7 @@ public class ShortcutSettingsDialog extends ContentDialog {
 
         cbEnableXInput.setChecked((inputType & WinHandler.FLAG_INPUT_TYPE_XINPUT) == WinHandler.FLAG_INPUT_TYPE_XINPUT);
         cbEnableDInput.setChecked((inputType & WinHandler.FLAG_INPUT_TYPE_DINPUT) == WinHandler.FLAG_INPUT_TYPE_DINPUT);
+        cbEnableVibration.setChecked(shortcut.getExtra("vibration", "1").equals("1"));
         cbEnableDInput.setOnCheckedChangeListener((buttonView, isChecked) -> {
             if (isChecked && cbEnableXInput.isChecked()) {
                 cbEnableXInput.setChecked(false);
@@ -238,7 +240,7 @@ public class ShortcutSettingsDialog extends ContentDialog {
         cbSimTouchScreen.setChecked(isTouchScreenMode.equals("1") ? true : false);
 
         final CheckBox cbNativeRendering = findViewById(R.id.CBNativeRenderingMode);
-        String isNativeRendering = shortcut.getExtra("nativeRendering");
+        String isNativeRendering = shortcut.getExtra("nativeRendering","1");
         cbNativeRendering.setChecked(isNativeRendering.equals("1") ? true : false);
 
         ContainerDetailFragment.createWinComponentsTabFromShortcut(this, getContentView(),
@@ -375,6 +377,7 @@ public class ShortcutSettingsDialog extends ContentDialog {
                 shortcut.putExtra("lc_all", lc_all);
 
                 shortcut.putExtra("fullscreenStretched", cbFullscreenStretched.isChecked() ? "1" : null);
+                shortcut.putExtra("vibration", cbEnableVibration.isChecked() ? "1" : null);
 
                 String wincomponents = containerDetailFragment.getWinComponents(getContentView());
                 shortcut.putExtra("wincomponents", wincomponents);

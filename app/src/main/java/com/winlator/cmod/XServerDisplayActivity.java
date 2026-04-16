@@ -419,7 +419,8 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
                 double sharpnessDenoise = Double.parseDouble(shortcut.getExtra("sharpnessDenoise", "100"));
                 vkbasaltConfig = "effects=" + sharpnessEffect.toLowerCase() + ";" + "casSharpness=" + sharpnessLevel / 100 + ";" + "dlsSharpness=" + sharpnessLevel / 100  + ";" + "dlsDenoise=" + sharpnessDenoise / 100 + ";" + "enableOnLaunch=True";
             }
-            Log.d("XServerDisplayActivity", "XInput Disabled from Shortcut: " + xinputDisabledFromShortcut);
+            Log.d("XServerDisplayActivity", "vibration from Shortcut: " + shortcut.getExtra("vibration").equals("None"));
+            if ( shortcut.getExtra("vibration", "1").equals("1") ) winHandler.setVibrationEnabledForSlot(0, true);
         }
 
         this.graphicsDriverConfig = GraphicsDriverConfigDialog.parseGraphicsDriverConfig(graphicsDriverConfig);
@@ -1142,7 +1143,7 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
 
         if (shortcut != null) {
             renderer.setUnviewableWMClasses("explorer.exe");
-            boolean isNative = shortcut.getExtra("nativeRendering").equals("1");
+            boolean isNative = shortcut.getExtra("nativeRendering","1").equals("1");
             renderer.setNativeMode(isNative);
         }
         xServer.setRenderer(renderer);
