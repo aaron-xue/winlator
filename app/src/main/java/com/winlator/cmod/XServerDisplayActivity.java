@@ -166,6 +166,7 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
     private boolean navigationFocused = false;
     private MidiHandler midiHandler;
     private String midiSoundFont = "";
+    private ExecutorService wineSetupExecutor;
     private String lc_all = "";
     private String vkbasaltConfig = "";
     PreloaderDialog preloaderDialog = null;
@@ -533,7 +534,8 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
                 // No profile defined, run the simulated dialog confirmation for input controls
                 simulateConfirmInputControlsDialog();
             }
-            Executors.newSingleThreadExecutor().execute(() -> {
+            wineSetupExecutor = Executors.newSingleThreadExecutor();
+            wineSetupExecutor.execute(() -> {
                 setupWineSystemFiles();
                 extractGraphicsDriverFiles();
                 changeWineAudioDriver();
@@ -778,9 +780,16 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
         // Remove all pending callbacks from handlers
         if (handler != null) {
             handler.removeCallbacks(savePlaytimeRunnable);
+            handler.removeCallbacksAndMessages(null);
         }
         if (timeoutHandler != null) {
             timeoutHandler.removeCallbacks(hideControlsRunnable);
+            timeoutHandler.removeCallbacksAndMessages(null);
+        }
+        // Shutdown executor service
+        if (wineSetupExecutor != null) {
+            wineSetupExecutor.shutdownNow();
+            wineSetupExecutor = null;
         }
     }
 

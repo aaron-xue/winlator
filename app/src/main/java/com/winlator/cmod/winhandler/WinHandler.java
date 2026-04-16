@@ -15,7 +15,6 @@ import com.winlator.cmod.inputcontrols.FakeInputWriter;
 import com.winlator.cmod.inputcontrols.GamepadState;
 import com.winlator.cmod.xserver.XServer;
 import android.content.Context;
-import android.content.SharedPreferences;
 import android.hardware.input.InputManager;
 import android.os.Handler;
 import android.net.LocalServerSocket;
@@ -41,6 +40,7 @@ import java.util.Set;
 import java.util.Iterator;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 
 public class WinHandler {
@@ -55,8 +55,9 @@ public class WinHandler {
     private final DatagramPacket sendPacket = new DatagramPacket(sendData.array(), 64);
     private final DatagramPacket receivePacket = new DatagramPacket(receiveData.array(), 64);
     private final ArrayDeque<Runnable> actions = new ArrayDeque<>();
-    private boolean initReceived = false;
-    private boolean running = false;
+    private volatile boolean initReceived = false;
+    private volatile boolean running = false;
+    private ExecutorService sendExecutor;
     private OnGetProcessInfoListener onGetProcessInfoListener;
     private final Map<Integer, ExternalController> controllers = new HashMap<>(); // map deviceId -> controller
     private InetAddress localhost;
@@ -289,14 +290,18 @@ public class WinHandler {
     }
 
     private void startSendThread() {
-        Executors.newSingleThreadExecutor().execute(() -> {
+        sendExecutor = Executors.newSingleThreadExecutor();
+        sendExecutor.execute(() -> {
             while (running) {
                 synchronized (actions) {
                     while (initReceived && !actions.isEmpty()) actions.poll().run();
                     try {
                         actions.wait();
                     }
-                    catch (InterruptedException e) {}
+                    catch (InterruptedException e) {
+                        Thread.currentThread().interrupt();
+                        break;
+                    }
                 }
             }
         });
@@ -304,6 +309,12 @@ public class WinHandler {
 
     public void stop() {
         running = false;
+
+        if (sendExecutor != null) {
+            sendExecutor.shutdownNow();
+            sendExecutor = null;
+        }
+
         closeFakeInputWriter();
 
         if (socket != null) {
