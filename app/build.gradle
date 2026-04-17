@@ -191,6 +191,20 @@ android {
         jniLibs {
             useLegacyPackaging = true
         }
+
+        resources {
+            excludes += [
+                "assets/dexopt/baseline.prof",
+                "assets/dexopt/baseline.profm",
+                "**/baseline.prof",
+                "**/baseline.profm"
+            ]
+
+            pickFirsts += [
+                "assets/dexopt/baseline.prof",
+                "assets/dexopt/baseline.profm"
+            ]
+        }
     }
 }
 
