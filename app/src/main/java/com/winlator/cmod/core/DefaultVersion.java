@@ -5,7 +5,7 @@ public abstract class DefaultVersion {
     public static final String WOWBOX64 = "0.4.1";
     public static final String FEXCORE = "2604";
     public static final String WRAPPER = "System";
-    public static final String WRAPPER_ADRENO = "Turnip_Gen8_V27";
+    public static final String WRAPPER_ADRENO = "Turnip_Gen8_V28";
     public static final String DXVK = GPUInformation.getRenderer(null, null).contains("Mali") ? "1.10.3" : "2.7.1-arm64ec-gplasync";
     public static final String VKD3D = "proton-arm64ec-3.0b";
 }

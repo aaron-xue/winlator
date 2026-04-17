@@ -172,27 +172,6 @@
                         android:visibility="visible" />
                 </LinearLayout>
 
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal" >
-
-                    <TextView
-                        android:id="@+id/TVWrapperVersionLabel"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Current Version:"
-                        android:textStyle="bold"
-                        android:paddingRight="8dp" />
-
-                    <TextView
-                        android:id="@+id/TVGraphicsDriverVersion"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="default_version"
-                        android:textColor="@android:color/holo_blue_dark" />
-                </LinearLayout>
-
                 <CheckBox
                     android:id="@+id/CBNativeRenderingMode"
                     android:layout_width="wrap_content"

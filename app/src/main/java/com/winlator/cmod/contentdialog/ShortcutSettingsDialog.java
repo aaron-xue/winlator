@@ -58,7 +58,6 @@ public class ShortcutSettingsDialog extends ContentDialog {
     private final ShortcutsFragment fragment;
     private final Shortcut shortcut;
     private InputControlsManager inputControlsManager;
-    private TextView tvGraphicsDriverVersion;
     private String box64Version;
 
 
@@ -82,9 +81,6 @@ public class ShortcutSettingsDialog extends ContentDialog {
         boolean isDarkMode = prefs.getBoolean("dark_mode", false);
 
         applyDynamicStyles(findViewById(R.id.LLContent), isDarkMode);
-
-        // Initialize the turnip version TextView
-        tvGraphicsDriverVersion = findViewById(R.id.TVGraphicsDriverVersion);
 
         final EditText etName = findViewById(R.id.ETName);
         etName.setText(shortcut.name);
@@ -677,10 +673,8 @@ public class ShortcutSettingsDialog extends ContentDialog {
             String graphicsDriver = StringUtils.parseIdentifier(sGraphicsDriver.getSelectedItem());
             String graphicsDriverConfig = vGraphicsDriverConfig.getTag().toString();
 
-            tvGraphicsDriverVersion.setText(GraphicsDriverConfigDialog.getVersion(graphicsDriverConfig));
-
             vGraphicsDriverConfig.setOnClickListener((v) -> {
-                new GraphicsDriverConfigDialog(vGraphicsDriverConfig, graphicsDriver, tvGraphicsDriverVersion).show();
+                new GraphicsDriverConfigDialog(vGraphicsDriverConfig, graphicsDriver).show();
             });
 
             ArrayList<String> items = new ArrayList<>();

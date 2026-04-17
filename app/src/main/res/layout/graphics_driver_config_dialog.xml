@@ -14,29 +14,14 @@
             android:layout_width="300dp"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:padding="16dp">
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/graphics_driver_vulkan_version"
-                android:textAppearance="?android:attr/textAppearanceMedium"
-                android:paddingBottom="8dp"/>
-
-            <Spinner
-                style="@style/ComboBox"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:entries="@array/vulkan_version_entries"
-                android:id="@+id/SGraphicsDriverVulkanVersion"
-                android:spinnerMode="dialog"/>
+            android:paddingBottom="16dp">
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/graphics_driver_version"
                 android:textAppearance="?android:attr/textAppearanceMedium"
-                android:paddingBottom="8dp"/>
+                android:layout_marginTop="8dp"/>
 
             <Spinner
                 style="@style/ComboBox"
@@ -45,12 +30,32 @@
                 android:id="@+id/SGraphicsDriverVersion"
                 android:spinnerMode="dialog"/>
 
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal" >
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Vulkan Version:"
+                    android:textStyle="bold"
+                    android:paddingRight="8dp" />
+
+                <TextView
+                    android:id="@+id/TVVulkanVersion"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="default_version"
+                    android:textColor="@android:color/holo_blue_dark" />
+            </LinearLayout>
+
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/graphics_driver_available_extensions"
                 android:textAppearance="?android:attr/textAppearanceMedium"
-                android:paddingBottom="8dp"/>
+                android:layout_marginTop="8dp"/>
 
 
             <com.winlator.cmod.widget.MultiSelectionComboBox
@@ -65,7 +70,7 @@
                 android:layout_height="wrap_content"
                 android:text="@string/gpu_name"
                 android:textAppearance="?android:attr/textAppearanceMedium"
-                android:paddingBottom="8dp"/>
+                android:layout_marginTop="8dp"/>
 
             <Spinner
                 style="@style/ComboBox"
@@ -80,7 +85,7 @@
                 android:layout_height="wrap_content"
                 android:text="@string/graphics_driver_max_device_memory"
                 android:textAppearance="?android:attr/textAppearanceMedium"
-                android:paddingBottom="8dp"/>
+                android:layout_marginTop="8dp"/>
 
             <Spinner
                 style="@style/ComboBox"
@@ -96,7 +101,7 @@
                 android:layout_height="wrap_content"
                 android:text="@string/graphics_driver_present_modes"
                 android:textAppearance="?android:attr/textAppearanceMedium"
-                android:paddingBottom="8dp"/>
+                android:layout_marginTop="8dp"/>
 
             <Spinner
                 style="@style/ComboBox"
@@ -111,7 +116,7 @@
                 android:layout_height="wrap_content"
                 android:text="@string/graphics_driver_resource_type"
                 android:textAppearance="?android:attr/textAppearanceMedium"
-                android:paddingBottom="8dp"/>
+                android:layout_marginTop="8dp"/>
 
             <Spinner
                 style="@style/ComboBox"
@@ -126,7 +131,7 @@
                 android:layout_height="wrap_content"
                 android:text="@string/graphics_driver_bcn_emulation"
                 android:textAppearance="?android:attr/textAppearanceMedium"
-                android:paddingBottom="8dp"/>
+                android:layout_marginTop="8dp"/>
 
             <Spinner
                 style="@style/ComboBox"
@@ -141,7 +146,7 @@
                 android:layout_height="wrap_content"
                 android:text="@string/graphics_driver_bcn_emulation_type"
                 android:textAppearance="?android:attr/textAppearanceMedium"
-                android:paddingBottom="8dp"/>
+                android:layout_marginTop="8dp"/>
 
             <Spinner
                 style="@style/ComboBox"
@@ -156,7 +161,7 @@
                 android:layout_height="wrap_content"
                 android:text="@string/graphics_driver_bcn_emulation_cache"
                 android:textAppearance="?android:attr/textAppearanceMedium"
-                android:paddingBottom="8dp"/>
+                android:layout_marginTop="8dp"/>
 
             <Spinner
                 style="@style/ComboBox"

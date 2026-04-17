@@ -36,7 +36,6 @@ public class GraphicsDriverConfigDialog extends ContentDialog {
 
     private static final String TAG = "GraphicsDriverConfigDialog"; // Tag for logging
     private Spinner sVersion;
-    private Spinner sVulkanVersion;
     private MultiSelectionComboBox mscAvailableExtensions;
     private Spinner sGPUName;
     private Spinner sMaxDeviceMemory;
@@ -47,8 +46,8 @@ public class GraphicsDriverConfigDialog extends ContentDialog {
     private Spinner sBCnEmulationCache;
     private CheckBox cbSyncFrame;
     private CheckBox cbDisablePresentWait;
+    private TextView tVVulkanVersion;
 
-    private static String selectedVulkanVersion;
     private static String selectedVersion;
     private static String blacklistedExtensions = "";
     private static String selectedGPUName;
@@ -118,7 +117,7 @@ public class GraphicsDriverConfigDialog extends ContentDialog {
     }
 
     public static String writeGraphicsDriverConfig() {
-        String graphicsDriverConfig = "vulkanVersion=" + selectedVulkanVersion + ";" +
+        String graphicsDriverConfig =
                 "version=" + selectedVersion + ";" +
                 "blacklistedExtensions=" + blacklistedExtensions + ";" +
                 "maxDeviceMemory=" + StringUtils.parseNumber(selectedDeviceMemory) + ";" +
@@ -138,19 +137,18 @@ public class GraphicsDriverConfigDialog extends ContentDialog {
         return GPUInformation.enumerateExtensions(driver, context);
     }
   
-    public GraphicsDriverConfigDialog(View anchor, String graphicsDriver, TextView graphicsDriverVersionView) {
+    public GraphicsDriverConfigDialog(View anchor, String graphicsDriver) {
         super(anchor.getContext(), R.layout.graphics_driver_config_dialog);
-        initializeDialog(anchor, graphicsDriver, graphicsDriverVersionView);
+        initializeDialog(anchor, graphicsDriver);
     }
 
-    private void initializeDialog(View anchor, String graphicsDriver, TextView graphicsDriverVersionView) {
+    private void initializeDialog(View anchor, String graphicsDriver) {
         setIcon(R.drawable.icon_settings);
         setTitle(anchor.getContext().getString(R.string.graphics_driver_configuration));
 
         String graphicsDriverConfig = anchor.getTag().toString();
 
         sVersion = findViewById(R.id.SGraphicsDriverVersion);
-        sVulkanVersion = findViewById(R.id.SGraphicsDriverVulkanVersion);
         mscAvailableExtensions = findViewById(R.id.MSCAvailableExtensions);
         sPresentMode = findViewById(R.id.SGraphicsDriverPresentMode);
         sGPUName = findViewById(R.id.SGraphicsDriverGPUName);
@@ -161,10 +159,11 @@ public class GraphicsDriverConfigDialog extends ContentDialog {
         sBCnEmulationCache = findViewById(R.id.SGraphicsDriverBCnEmulationCache);
         cbSyncFrame = findViewById(R.id.CBSyncFrame);
         cbDisablePresentWait = findViewById(R.id.CBDisablePresentWait);
+        // Initialize the turnip version TextView
+        tVVulkanVersion = findViewById(R.id.TVVulkanVersion);
 
         HashMap<String, String> config = parseGraphicsDriverConfig(graphicsDriverConfig);
 
-        String vulkanVersion = config.get("vulkanVersion");
         String initialVersion = config.get("version");
         String blExtensions = config.get("blacklistedExtensions");
         String gpuName = config.get("gpuName");
@@ -187,9 +186,10 @@ public class GraphicsDriverConfigDialog extends ContentDialog {
 
                 mscAvailableExtensions.setItems(availableExtensions, "Extensions");
                 mscAvailableExtensions.setSelectedItems(availableExtensions);
-
-                if(selectedVersion.equals(initialVersion))
+                tVVulkanVersion.setText(GPUInformation.getVulkanVersion(selectedVersion, anchor.getContext()));
+                if(selectedVersion.equals(initialVersion)){
                     blacklistedExtensions = blExtensions;
+                }
 
                 String[] bl = blacklistedExtensions.split("\\,");
 
@@ -202,18 +202,6 @@ public class GraphicsDriverConfigDialog extends ContentDialog {
             public void onNothingSelected(AdapterView<?> parent) {
                 selectedVersion = sVersion.getSelectedItem().toString();
                 Log.d(TAG, "User selected version: " + selectedVersion);
-            }
-        });
-
-        sVulkanVersion.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-            @Override
-            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                selectedVulkanVersion = sVulkanVersion.getSelectedItem().toString();
-            }
-
-            @Override
-            public void onNothingSelected(AdapterView<?> parent) {
-
             }
         });
 
@@ -318,19 +306,16 @@ public class GraphicsDriverConfigDialog extends ContentDialog {
         contentsManager.syncContents();
         
         // Populate the spinner with available versions from ContentsManager and pre-select the initial version
-        populateGraphicsDriverVersions(anchor.getContext(), contentsManager, vulkanVersion, initialVersion, blExtensions, gpuName, maxDeviceMemory, presentMode, resourceType, bcnEmulation, bcnEmulationType, bcnEmulationCache, graphicsDriver);
+        populateGraphicsDriverVersions(anchor.getContext(), contentsManager, initialVersion, blExtensions, gpuName, maxDeviceMemory, presentMode, resourceType, bcnEmulation, bcnEmulationType, bcnEmulationCache, graphicsDriver);
 
         setOnConfirmCallback(() -> {
             blacklistedExtensions = mscAvailableExtensions.getUnSelectedItemsAsString();
-
-            if (graphicsDriverVersionView != null)
-                graphicsDriverVersionView.setText(selectedVersion);
 
             anchor.setTag(writeGraphicsDriverConfig());
         });
     }
 
-    private void populateGraphicsDriverVersions(Context context, ContentsManager contentsManager, String vulkanVersion, @Nullable String initialVersion, @Nullable String blExtensions, String gpuName, String maxDeviceMemory, String presentMode, String selectedResourceType, String bcnEmulation, String bcnEmulationType, String bcnEmulationCache, String graphicsDriver) {
+    private void populateGraphicsDriverVersions(Context context, ContentsManager contentsManager, @Nullable String initialVersion, @Nullable String blExtensions, String gpuName, String maxDeviceMemory, String presentMode, String selectedResourceType, String bcnEmulation, String bcnEmulationType, String bcnEmulationCache, String graphicsDriver) {
         List<String> wrapperVersions = new ArrayList<>();
         String[] wrapperDefaultVersions = context.getResources().getStringArray(R.array.wrapper_graphics_driver_version_entries);
 
@@ -356,7 +341,6 @@ public class GraphicsDriverConfigDialog extends ContentDialog {
 
         // Use the custom selection logic
         setSpinnerSelectionWithFallback(sVersion, initialVersion, graphicsDriver);
-        AppUtils.setSpinnerSelectionFromValue(sVulkanVersion, vulkanVersion);
         AppUtils.setSpinnerSelectionFromValue(sGPUName, gpuName);
         AppUtils.setSpinnerSelectionFromNumber(sMaxDeviceMemory, maxDeviceMemory);
         AppUtils.setSpinnerSelectionFromValue(sPresentMode, presentMode);

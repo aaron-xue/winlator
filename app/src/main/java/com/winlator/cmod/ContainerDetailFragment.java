@@ -451,7 +451,8 @@ public class ContainerDetailFragment extends Fragment {
                 String graphicsDriverConfig = vGraphicsDriverConfig.getTag().toString();
                 HashMap<String, String> config = GraphicsDriverConfigDialog.parseGraphicsDriverConfig(graphicsDriverConfig);
                 if (config.get("version").isEmpty()) {
-                    config.put("version", GPUInformation.isDriverSupported(DefaultVersion.WRAPPER_ADRENO, context) ? DefaultVersion.WRAPPER_ADRENO : DefaultVersion.WRAPPER);
+                    String graphicsDriverVersion = GPUInformation.isDriverSupported(DefaultVersion.WRAPPER_ADRENO, context) ? DefaultVersion.WRAPPER_ADRENO : DefaultVersion.WRAPPER;
+                    config.put("version", graphicsDriverVersion);
                     graphicsDriverConfig = GraphicsDriverConfigDialog.toGraphicsDriverConfig(config);
                 }
                 String dxwrapper = StringUtils.parseIdentifier(sDXWrapper.getSelectedItem());
@@ -719,7 +720,7 @@ public class ContainerDetailFragment extends Fragment {
             AppUtils.setSpinnerSelectionFromIdentifier(sDXWrapper, selectedDXWrapper);
 
             vGraphicsDriverConfig.setOnClickListener((v) -> {
-                new GraphicsDriverConfigDialog(vGraphicsDriverConfig, graphicsDriver, null).show();
+                new GraphicsDriverConfigDialog(vGraphicsDriverConfig, graphicsDriver).show();
             });
             vGraphicsDriverConfig.setVisibility(View.VISIBLE);
         };
