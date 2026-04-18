@@ -525,6 +525,9 @@ public class GLRenderer implements GLSurfaceView.Renderer, WindowManager.OnWindo
     }
 
     public void setCursorVisible(boolean cursorVisible) {
+        if (this.cursorVisible == cursorVisible) {
+            return;
+        }
         this.cursorVisible = cursorVisible;
         xServerView.requestRender();
     }
