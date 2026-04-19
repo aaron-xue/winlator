@@ -87,10 +87,66 @@ public class ContainerManager {
 
 
     public void activateContainer(Container container) {
-        container.setRootDir(new File(homeDir, ImageFs.USER+"-"+container.id));
+        File containerDir = new File(homeDir, ImageFs.USER + "-" + container.id);
+        container.setRootDir(containerDir);
         File file = new File(homeDir, ImageFs.USER);
-        file.delete();
-        FileUtils.symlink("./"+ImageFs.USER+"-"+container.id, file.getPath());
+
+        // Make C: Drive accessible — 0771 not 0777 to prevent other apps reading file contents
+        try {
+        Runtime.getRuntime()
+            .exec(
+                new String[] {
+                    "chmod", "-R", "0771", new File(containerDir, ".wine/drive_c").getAbsolutePath()
+                });
+        } catch (Exception e) {
+        }
+        // Replace the real "xuser" dir (from imagefs.txz) with a symlink to the active
+        // container. Migrate winhandler.exe/wfm.exe first since they aren't in container
+        // pattern archives. Only runs once — after that xuser is already a symlink.
+        if (file.exists() && !FileUtils.isSymlink(file)) {
+            Log.w(
+                "ContainerManager",
+                "activateContainer: xuser is real dir, migrating essential files to container "
+                    + container.id);
+            migrateEssentialFiles(file, containerDir);
+            boolean deleted = FileUtils.delete(file);
+            Log.d("ContainerManager", "activateContainer: real xuser dir delete=" + deleted);
+        } else {
+            boolean deleted = file.delete();
+            Log.d(
+                "ContainerManager",
+                "activateContainer: xuser symlink/missing delete="
+                    + deleted
+                    + " existed="
+                    + file.exists());
+        }
+        FileUtils.symlink("./" + ImageFs.USER + "-" + container.id, file.getPath());
+        Log.d(
+            "ContainerManager",
+            "activateContainer: xuser symlink created, isSymlink="
+                + FileUtils.isSymlink(file)
+                + " target=./"
+                + ImageFs.USER
+                + "-"
+                + container.id);
+
+        // file.delete();
+        // FileUtils.symlink("./"+ImageFs.USER+"-"+container.id, file.getPath());
+    }
+
+    private void migrateEssentialFiles(File sourceDir, File destDir) {
+        String[] essentialPaths = {
+        ".wine/drive_c/windows/winhandler.exe", ".wine/drive_c/windows/wfm.exe"
+        };
+        for (String path : essentialPaths) {
+        File source = new File(sourceDir, path);
+        File dest = new File(destDir, path);
+        if (source.exists() && !dest.exists()) {
+            dest.getParentFile().mkdirs();
+            FileUtils.copy(source, dest);
+            Log.d("ContainerManager", "Migrated " + path + " to container");
+        }
+        }
     }
 
     public void createContainerAsync(final JSONObject data, ContentsManager contentsManager, Callback<Container> callback) {

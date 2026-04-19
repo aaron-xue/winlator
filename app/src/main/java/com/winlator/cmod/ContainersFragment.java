@@ -24,6 +24,7 @@ import android.widget.ImageView;
 import android.widget.PopupMenu;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -89,6 +90,7 @@ public class ContainersFragment extends Fragment {
 
     private void loadContainersList() {
         ArrayList<Container> containers = manager.getContainers();
+        Log.d("ContentsFragment", "containers: " + containers.size());
         recyclerView.setAdapter(new ContainersAdapter(containers));
         if (containers.isEmpty()) emptyTextView.setVisibility(View.VISIBLE);
     }

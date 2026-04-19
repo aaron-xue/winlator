@@ -208,7 +208,7 @@ public abstract class TarCompressorUtils {
                     }
                 }
 
-                applyExtractedEntryPermissions(file, entry);
+                FileUtils.chmod(file, 0771);
             }
             return true;
         }
@@ -216,22 +216,6 @@ public abstract class TarCompressorUtils {
             e.printStackTrace();
             return false;
         }    
-    }
-
-    private static void applyExtractedEntryPermissions(File file, TarArchiveEntry entry) {
-        if (entry == null || file == null) return;
-        if (entry.isDirectory()) {
-            FileUtils.chmod(file, 0771);
-            return;
-        }
-        if (entry.isSymbolicLink()) {
-            return;
-        }
-
-        // Only regular files marked executable in the archive need an explicit chmod.
-        if ((entry.getMode() & 0111) != 0) {
-            FileUtils.chmod(file, 0771);
-        }
     }
 
     private static InputStream getCompressorInputStream(Type type,File sourceFile, InputStream source) throws IOException {
@@ -344,7 +328,7 @@ public abstract class TarCompressorUtils {
                     }
                 }
 
-                applyExtractedEntryPermissions(file, entry);
+                FileUtils.chmod(file, 0771);
             }
             return true;
         } catch (IOException e) {
