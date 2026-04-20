@@ -214,6 +214,7 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
         AppUtils.hideSystemUI(this);
         AppUtils.keepScreenOn(this);
         setContentView(R.layout.xserver_display_activity);
+        startService(new Intent(this, ForegroundService.class));
 
         preloaderDialog = new PreloaderDialog(this);
         preferences = PreferenceManager.getDefaultSharedPreferences(this);
@@ -733,6 +734,7 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
 
     private void exit() {
         preloaderDialog.showOnUiThread(R.string.shutdown);
+        stopService(new Intent(this, ForegroundService.class));
         handler.postDelayed(new Runnable() {
             @Override
             public void run() {

@@ -716,4 +716,6 @@
     <string name="information">详情</string>
     <string name="enable_sdl2">兼容SDL2</string>
     <string name="vibrate">手柄震动</string>
+    <string name="running_notification_text">正在运行</string>
+    <string name="running_notification_desc">Winlator 运行状态</string>
 </resources>

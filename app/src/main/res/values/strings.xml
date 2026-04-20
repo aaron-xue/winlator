@@ -709,4 +709,6 @@ E.g. <b>META</b> for <i>META key</i>, \n
     <string name="information">Information</string>
     <string name="enable_sdl2">Enable SDL2 Compatibility</string>
     <string name="vibrate">Vibration</string>
+    <string name="running_notification_text">Running</string>
+    <string name="running_notification_desc">Winlator running status</string>
 </resources>
