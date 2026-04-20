@@ -131,6 +131,10 @@ public class Keyboard {
         if(action == KeyEvent.ACTION_DOWN || action == KeyEvent.ACTION_UP){
             return injectKeyEvent(event);
         }
+        else if (action == KeyEvent.ACTION_MULTIPLE){
+            Log.d("keyboard","ACTION_MULTIPLE");
+            return E02_KeyInput.handleAndroidKeyEvent(xServer, event);
+        }
         return KeyInput.handleAndroidKeyEvent(xServer,event);
     }
 
