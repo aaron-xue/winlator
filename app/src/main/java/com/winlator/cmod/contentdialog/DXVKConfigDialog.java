@@ -179,12 +179,18 @@ public class DXVKConfigDialog extends ContentDialog {
         if (dxvkType == DXVK_TYPE_ASYNC) {
             llAsync.setVisibility(View.VISIBLE);
             llAsyncCache.setVisibility(View.GONE);
+            swAsync.setChecked(true);
+            swAsyncCache.setChecked(false);
         } else if (dxvkType == DXVK_TYPE_GPLASYNC) {
             llAsync.setVisibility(View.VISIBLE);
             llAsyncCache.setVisibility(View.VISIBLE);
+            swAsync.setChecked(true);
+            swAsyncCache.setChecked(true);
         } else {
             llAsync.setVisibility(View.GONE);
             llAsyncCache.setVisibility(View.GONE);
+            swAsync.setChecked(false);
+            swAsyncCache.setChecked(false);
         }
     }
 
