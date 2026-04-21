@@ -652,6 +652,8 @@ E.g. <b>META</b> for <i>META key</i>, \n
     <string name="failed_create_directories_for_save">Failed to create directories for save path!</string>
     <string name="save_imported_successfully">Save imported successfully!</string>
     <string name="save_imported_failed">Failed to import save</string>
+    <string name="save_overwrite_title">Save Already Exists</string>
+    <string name="save_overwrite_message">A save named \"%1$s\" already exists. Do you want to overwrite it?</string>
     <string name="failed_create_temporary_directory">Failed to create temporary directory</string>
     <string name="failed_decompress_archive">Failed to decompress archive</string>
     <string name="unexpected_archive_structure">Unexpected archive structure</string>

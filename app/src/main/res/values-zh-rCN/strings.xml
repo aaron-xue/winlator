@@ -668,6 +668,8 @@
     <string name="failed_create_directories_for_save">无法创建存档目录!</string>
     <string name="save_imported_successfully">存档导入成功!</string>
     <string name="save_imported_failed">存档导入失败</string>
+    <string name="save_overwrite_title">存档已存在</string>
+    <string name="save_overwrite_message">已存在名为 \"%1$s\" 的存档，是否覆盖？</string>
     <string name="failed_create_temporary_directory">无法创建临时目录</string>
     <string name="failed_decompress_archive">解压存档失败</string>
     <string name="unexpected_archive_structure">存档文件损坏或丢失</string>

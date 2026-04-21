@@ -29,6 +29,14 @@ public class SaveManager {
         return new File(savesDir, save.getTitle() + ".json");
     }
 
+    public boolean saveExists(String title) {
+        return new File(savesDir, title + ".json").exists();
+    }
+
+    public File getSavesDir() {
+        return savesDir;
+    }
+
     public ArrayList<Save> getSaves() {
         ArrayList<Save> saves = new ArrayList<>();
         File[] saveFiles = savesDir.listFiles((dir, name) -> name.endsWith(".json"));
@@ -73,10 +81,17 @@ public class SaveManager {
     }
 
     public void addSave(String title, String path, Container container) throws IOException {
+        addSave(title, path, container, false);
+    }
+
+    public void addSave(String title, String path, Container container, boolean overwrite) throws IOException {
         int id = generateNewSaveId(); // Generate a unique ID for the new save
         File saveFile = new File(savesDir, title + ".json");
         if (saveFile.exists()) {
-            throw new IOException("Save with this name already exists");
+            if (!overwrite) {
+                throw new IOException("Save with this name already exists");
+            }
+            saveFile.delete();
         }
 
         try {

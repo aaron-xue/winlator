@@ -21,6 +21,7 @@ import android.widget.PopupMenu;
 import android.widget.Spinner;
 import android.widget.ArrayAdapter;
 import android.widget.TextView;
+import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -259,13 +260,38 @@ public class SavesFragment extends Fragment {
                             return;
                         }
 
-                        // Create the new save with the adjusted path
-                        saveManager.addSave(title, destSaveDir.getAbsolutePath(), selectedContainer);
-
-                        AppUtils.showToast(getContext(), R.string.save_imported_successfully);
-                        loadSavesList();
+                        // Check if save with same title already exists
+                        File existingSaveFile = new File(saveManager.getSavesDir(), title + ".json");
+                        if (existingSaveFile.exists()) {
+                            new AlertDialog.Builder(getContext())
+                                    .setTitle(R.string.save_overwrite_title)
+                                    .setMessage(getString(R.string.save_overwrite_message, title))
+                                    .setPositiveButton(android.R.string.ok, (dialog, which) -> {
+                                        try {
+                                            saveManager.addSave(title, destSaveDir.getAbsolutePath(), selectedContainer, true);
+                                            AppUtils.showToast(getContext(), R.string.save_imported_successfully);
+                                            loadSavesList();
+                                        } catch (IOException e) {
+                                            AppUtils.showToast(getContext(), getString(R.string.save_imported_failed) + ": " + e.getMessage());
+                                        } finally {
+                                            FileUtils.delete(tempDir);
+                                            preloaderDialog.closeOnUiThread();
+                                        }
+                                    })
+                                    .setNegativeButton(android.R.string.cancel, (dialog, which) -> {
+                                        FileUtils.delete(tempDir);
+                                        preloaderDialog.closeOnUiThread();
+                                    })
+                                    .show();
+                        } else {
+                            // No existing save, create new one directly
+                            saveManager.addSave(title, destSaveDir.getAbsolutePath(), selectedContainer);
+                            AppUtils.showToast(getContext(), R.string.save_imported_successfully);
+                            loadSavesList();
+                        }
                     } catch (IOException e) {
-                        AppUtils.showToast(getContext(), R.string.save_imported_failed+": " + e.getMessage());
+                        Log.e("save_imported_failed",e.getMessage());
+                        AppUtils.showToast(getContext(), getString(R.string.save_imported_failed) + ": " + e.getMessage());
                     } finally {
                         FileUtils.delete(tempDir);
                         preloaderDialog.closeOnUiThread();
@@ -275,7 +301,8 @@ public class SavesFragment extends Fragment {
                     preloaderDialog.closeOnUiThread();
                 }));
             } catch (Exception e) {
-                AppUtils.showToast(getContext(), R.string.save_imported_failed+": " + e.getMessage());
+                Log.e("save_imported_failed",e.getMessage());
+                AppUtils.showToast(getContext(), getString(R.string.save_imported_failed) + ": " + e.getMessage());
                 e.printStackTrace(); // Log the error to console
                 preloaderDialog.closeOnUiThread();
             }
@@ -463,50 +490,12 @@ public class SavesFragment extends Fragment {
                             loadSavesList();
                             AppUtils.showToast(getContext(), R.string.transfer_complete);
                         } catch (IOException e) {
-                            AppUtils.showToast(getContext(), R.string.transfer_failed+": " + e.getMessage());
+                            AppUtils.showToast(getContext(), getString(R.string.transfer_failed) + ": " + e.getMessage());
                         }
                     })
                     .setNegativeButton(android.R.string.cancel, null)
                     .show();
         }
     }
-
-
-
-
-        private void showTransferDialog(Save save) {
-            // Create a simple dialog with a Spinner for selecting a container
-            View dialogView = LayoutInflater.from(getContext()).inflate(R.layout.container_selection_dialog, null);
-            Spinner spinner = dialogView.findViewById(R.id.spinner_container_selection);
-
-            List<Container> containers = containerManager.getContainers();
-            ArrayAdapter<Container> adapter = new ArrayAdapter<>(getContext(), android.R.layout.simple_spinner_item, containers);
-            adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-            spinner.setAdapter(adapter);
-
-            new androidx.appcompat.app.AlertDialog.Builder(getContext())
-                    .setTitle(R.string.select_container)
-                    .setView(dialogView)
-                    .setPositiveButton(R.string.transfer, (dialog, which) -> {
-                        Container selectedContainer = (Container) spinner.getSelectedItem();
-                        transferSaveFiles(save, selectedContainer);
-                    })
-                    .setNegativeButton(android.R.string.cancel, null)
-                    .show();
-        }
-
-        private void transferSaveFiles(Save save, Container container) {
-            // Clone the save directory to the container's directory
-            File sourceDir = new File(save.path);
-            File targetDir = new File(container.getRootDir(), "xuser-" + container.id);
-
-            boolean success = FileUtils.copy(sourceDir, targetDir);
-            if (success) {
-                // Optionally, notify the user of the successful transfer
-                AppUtils.showToast(getContext(), R.string.transfer_complete);
-            } else {
-                AppUtils.showToast(getContext(), R.string.transfer_failed);
-            }
-        }
-    }
+}
 
