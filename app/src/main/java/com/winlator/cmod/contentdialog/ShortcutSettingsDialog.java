@@ -4,6 +4,7 @@ package com.winlator.cmod.contentdialog;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.content.res.ColorStateList;
 import android.graphics.Color;
 import android.graphics.drawable.Icon;
 import android.util.Log;
@@ -21,6 +22,7 @@ import android.widget.SeekBar;
 import android.widget.Spinner;
 import android.widget.TextView;
 
+import androidx.core.content.ContextCompat;
 import androidx.preference.PreferenceManager;
 
 import com.google.android.material.tabs.TabLayout;
@@ -413,22 +415,6 @@ public class ShortcutSettingsDialog extends ContentDialog {
         });
     }
 
-    // Utility method to apply styles to dynamically added TextViews based on their content
-    private void applyFieldSetLabelStylesDynamically(ViewGroup rootView, boolean isDarkMode) {
-        for (int i = 0; i < rootView.getChildCount(); i++) {
-            View child = rootView.getChildAt(i);
-            if (child instanceof ViewGroup) {
-                applyFieldSetLabelStylesDynamically((ViewGroup) child, isDarkMode); // Recursive call for nested ViewGroups
-            } else if (child instanceof TextView) {
-                TextView textView = (TextView) child;
-                // Apply the style based on the content of the TextView
-                if (isFieldSetLabel(textView.getText().toString())) {
-                    applyFieldSetLabelStyle(textView, isDarkMode);
-                }
-            }
-        }
-    }
-
     // Method to check if the text content matches any fieldset label
     private boolean isFieldSetLabel(String text) {
         return text.equalsIgnoreCase("DirectX") ||
@@ -440,9 +426,11 @@ public class ShortcutSettingsDialog extends ContentDialog {
     }
 
     public void onWinComponentsViewsAdded(boolean isDarkMode) {
-        // Apply styles to all dynamically added TextViews
-        ViewGroup llContent = findViewById(R.id.LLContent);
-        applyFieldSetLabelStylesDynamically(llContent, isDarkMode);
+        // Apply styles directly to WinComponents labels using IDs
+        TextView tvDirectX = findViewById(R.id.TVDirectX);
+        TextView tvGeneral = findViewById(R.id.TVGeneral);
+        applyFieldSetLabelStyle(tvDirectX, isDarkMode);
+        applyFieldSetLabelStyle(tvGeneral, isDarkMode);
     }
 
 
@@ -517,14 +505,16 @@ public class ShortcutSettingsDialog extends ContentDialog {
     }
 
     private void applyFieldSetLabelStyle(TextView textView, boolean isDarkMode) {
+        if (textView == null) return;
+        Context context = textView.getContext();
         if (isDarkMode) {
             // Apply dark mode-specific attributes
-            textView.setTextColor(Color.parseColor("#cccccc")); // Set text color to #cccccc
-            textView.setBackgroundColor(Color.parseColor("#424242")); // Set dark background color
+            textView.setTextColor(ContextCompat.getColor(context, R.color.white));
+            textView.setBackgroundColor(ContextCompat.getColor(context, R.color.content_dialog_background_dark));
         } else {
             // Apply light mode-specific attributes
-            textView.setTextColor(Color.parseColor("#bdbdbd")); // Set text color to #bdbdbd
-            textView.setBackgroundResource(R.color.window_background_color); // Set light background color
+            textView.setTextColor(ContextCompat.getColor(context, R.color.design_default_color_primary_variant));
+            textView.setBackgroundColor(ContextCompat.getColor(context, R.color.white));
         }
     }
 

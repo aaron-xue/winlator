@@ -790,16 +790,25 @@ public class ContainerDetailFragment extends Fragment {
         ViewGroup directxSectionView = tabView.findViewById(R.id.LLWinComponentsDirectX);
         ViewGroup generalSectionView = tabView.findViewById(R.id.LLWinComponentsGeneral);
 
+        String[] entries = context.getResources().getStringArray(R.array.wincomponent_entries);
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(context, R.layout.wincomponent_spinner_dropdown_item, entries);
+        adapter.setDropDownViewResource(R.layout.wincomponent_spinner_dropdown_item);
+
         for (String[] wincomponent : new KeyValueSet(wincomponents)) {
             ViewGroup parent = wincomponent[0].startsWith("direct") ? directxSectionView : generalSectionView;
             View itemView = inflater.inflate(R.layout.wincomponent_list_item, parent, false);
             ((TextView)itemView.findViewById(R.id.TextView)).setText(StringUtils.getString(context, wincomponent[0]));
             Spinner spinner = itemView.findViewById(R.id.Spinner);
+            spinner.setAdapter(adapter);
             spinner.setSelection(Integer.parseInt(wincomponent[1]), false);
             spinner.setTag(wincomponent[0]);
 
-            // Set the background color of the spinners dynamically based on the current theme
+            // Set the background color and text color of the spinners dynamically based on the current theme
             spinner.setPopupBackgroundResource(isDarkMode ? R.drawable.content_dialog_background_dark: R.drawable.content_dialog_background);
+            View dropdownView = spinner.getChildAt(0);
+            if (dropdownView instanceof TextView) {
+                ((TextView) dropdownView).setTextColor(isDarkMode ? Color.WHITE : Color.BLACK);
+            }
 
             parent.addView(itemView);
 
@@ -813,16 +822,36 @@ public class ContainerDetailFragment extends Fragment {
         ViewGroup directxSectionView = tabView.findViewById(R.id.LLWinComponentsDirectX);
         ViewGroup generalSectionView = tabView.findViewById(R.id.LLWinComponentsGeneral);
 
+        String[] entries = context.getResources().getStringArray(R.array.wincomponent_entries);
+        int textColor = isDarkMode ? Color.WHITE : Color.BLACK;
+        ArrayAdapter<String> adapter = new ArrayAdapter<String>(context, R.layout.wincomponent_spinner_dropdown_item, entries) {
+            @Override
+            public View getDropDownView(int position, View convertView, ViewGroup parent) {
+                View view = super.getDropDownView(position, convertView, parent);
+                if (view instanceof TextView) {
+                    ((TextView) view).setTextColor(textColor);
+                }
+                return view;
+            }
+        };
+        adapter.setDropDownViewResource(R.layout.wincomponent_spinner_dropdown_item);
+
         for (String[] wincomponent : new KeyValueSet(wincomponents)) {
             ViewGroup parent = wincomponent[0].startsWith("direct") ? directxSectionView : generalSectionView;
             View itemView = inflater.inflate(R.layout.wincomponent_list_item, parent, false);
             ((TextView) itemView.findViewById(R.id.TextView)).setText(StringUtils.getString(context, wincomponent[0]));
             Spinner spinner = itemView.findViewById(R.id.Spinner);
+            spinner.setAdapter(adapter);
             spinner.setSelection(Integer.parseInt(wincomponent[1]), false);
             spinner.setTag(wincomponent[0]);
 
             // Set the background color of the spinners dynamically based on the current theme
             spinner.setPopupBackgroundResource(isDarkMode ? R.drawable.content_dialog_background_dark : R.drawable.content_dialog_background);
+
+            View selectedView = spinner.getChildAt(0);
+            if (selectedView instanceof TextView) {
+                ((TextView) selectedView).setTextColor(textColor);
+            }
 
             parent.addView(itemView);
         }

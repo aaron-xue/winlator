@@ -12,6 +12,5 @@
     <Spinner
         android:id="@+id/Spinner"
         style="@style/ComboBox"
-        android:layout_width="match_parent"
-        android:entries="@array/wincomponent_entries" />
+        android:layout_width="match_parent" />
 </LinearLayout>

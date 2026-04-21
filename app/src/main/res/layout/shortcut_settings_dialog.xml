@@ -310,8 +310,8 @@
                         android:id="@+id/LLWinComponentsDirectX" />
 
                     <TextView
+                        android:id="@+id/TVDirectX"
                         style="@style/FieldSetLabel"
-                        android:background="#ffffff"
                         android:text="@string/directx" />
                 </FrameLayout>
 
@@ -325,8 +325,8 @@
                         android:id="@+id/LLWinComponentsGeneral" />
 
                     <TextView
+                        android:id="@+id/TVGeneral"
                         style="@style/FieldSetLabel"
-                        android:background="#ffffff"
                         android:text="@string/general" />
                 </FrameLayout>
             </LinearLayout>
