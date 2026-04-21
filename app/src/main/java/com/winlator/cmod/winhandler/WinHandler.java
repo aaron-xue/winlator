@@ -16,11 +16,11 @@ import com.winlator.cmod.inputcontrols.GamepadState;
 import com.winlator.cmod.xserver.XServer;
 import android.content.Context;
 import android.hardware.input.InputManager;
-import android.os.Handler;
 import android.net.LocalServerSocket;
 import android.net.LocalSocket;
 import android.os.VibrationEffect;
 import android.os.Vibrator;
+import android.os.VibratorManager;
 
 import java.io.IOException;
 import java.net.DatagramPacket;
@@ -63,12 +63,12 @@ public class WinHandler {
     private InetAddress localhost;
     private byte inputType = DEFAULT_INPUT_TYPE;
     private final XServerDisplayActivity activity;
-    private final List<Integer> gamepadClients = new CopyOnWriteArrayList<>();
     private SharedPreferences preferences;
     
     // Multi-controller support
     private static final int MAX_CONTROLLERS = 4;
     private static final int OSC_DEVICE_ID = -1;
+    private static final String VIBRATION_SOCKET_NAME = "winlator_vibration";
     private FakeInputWriter[] writers = new FakeInputWriter[MAX_CONTROLLERS];
     private Map<Integer, Integer> deviceToSlot = new HashMap<>();
     private Set<Integer> usedSlots = new HashSet<>();
@@ -334,8 +334,8 @@ public class WinHandler {
 
         Executors.newSingleThreadExecutor().execute(() -> {
             try {
-                vibrationServer = new LocalServerSocket("winlator_vibration");
-                Log.d("WinHandler", "Vibration listener started on abstract socket: winlator_vibration");
+                vibrationServer = new LocalServerSocket(VIBRATION_SOCKET_NAME);
+                Log.d("WinHandler", "Vibration listener started on abstract socket: " + VIBRATION_SOCKET_NAME);
 
                 while (vibrationRunning) {
                     LocalSocket client = vibrationServer.accept();
@@ -363,14 +363,33 @@ public class WinHandler {
         });
     }
 
+    private Vibrator getVibratorForDevice(Integer deviceId) {
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S) {
+            VibratorManager vibratorManager = (VibratorManager) activity.getSystemService(Context.VIBRATOR_MANAGER_SERVICE);
+            if (vibratorManager == null) {
+                return null;
+            }
+            if (deviceId != null && deviceId == OSC_DEVICE_ID) {
+                return vibratorManager.getDefaultVibrator();
+            } else if (deviceId != null) {
+                return vibratorManager.getVibrator(deviceId);
+            }
+            return vibratorManager.getDefaultVibrator();
+        } else {
+            if (deviceId != null && deviceId == OSC_DEVICE_ID) {
+                return (Vibrator) activity.getSystemService(Context.VIBRATOR_SERVICE);
+            } else if (deviceId != null) {
+                android.view.InputDevice device = android.view.InputDevice.getDevice(deviceId);
+                return device != null ? device.getVibrator() : null;
+            }
+            return (Vibrator) activity.getSystemService(Context.VIBRATOR_SERVICE);
+        }
+    }
+
     private void triggerVibration(int strong, int weak, int durationMs, int slot) {
-        // Check if vibration is enabled for this slot
         if (slot >= 0 && slot < MAX_CONTROLLERS && !vibrationEnabledSlots[slot])
             return;
 
-        Vibrator vibrator = null;
-
-        // Find which deviceId owns this slot
         Integer deviceId = null;
         for (Map.Entry<Integer, Integer> entry : deviceToSlot.entrySet()) {
             if (entry.getValue() == slot) {
@@ -379,22 +398,15 @@ public class WinHandler {
             }
         }
 
-        if (deviceId != null && deviceId == OSC_DEVICE_ID) {
-            // OSC is mapped to this slot — use the phone vibrator
-            vibrator = (Vibrator) activity.getSystemService(Context.VIBRATOR_SERVICE);
-        } else if (deviceId != null) {
-            // Physical controller
-            android.view.InputDevice device = android.view.InputDevice.getDevice(deviceId);
-            if (device != null) {
-                vibrator = device.getVibrator();
-                // Check if the physical controller has vibration capabilities
-                if (vibrator == null || !vibrator.hasVibrator()) {
-                    // Fallback to phone vibrator if OSC is off and no other controller has fallen back
-                    if (!deviceToSlot.containsKey(OSC_DEVICE_ID) && (fallbackSlot == -1 || fallbackSlot == slot)) {
-                        vibrator = (Vibrator) activity.getSystemService(Context.VIBRATOR_SERVICE);
-                        fallbackSlot = slot;
-                    }
-                    else vibrator = null;
+        Vibrator vibrator = getVibratorForDevice(deviceId);
+
+        if (deviceId != null && deviceId != OSC_DEVICE_ID) {
+            if (vibrator == null || !vibrator.hasVibrator()) {
+                if (!deviceToSlot.containsKey(OSC_DEVICE_ID) && (fallbackSlot == -1 || fallbackSlot == slot)) {
+                    vibrator = getVibratorForDevice(OSC_DEVICE_ID);
+                    fallbackSlot = slot;
+                } else {
+                    vibrator = null;
                 }
             }
         }
