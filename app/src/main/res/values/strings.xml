@@ -593,7 +593,6 @@ E.g. <b>META</b> for <i>META key</i>, \n
     <string name="pref_enableGboardCJK">Workaround to enable CJK Gboard</string>
     <string name="pref_enableGboardCJK_summary">May require Android 14 and Gboard 14</string>
 
-    <string name="pref_clipboardEnable">Clipboard sharing</string>
     <string name="pref_requestNotificationPermission">Request notification permission</string>
     <string name="pref_xrMode">Meta Oculus XR mode</string>
     <string name="pref_configureResponseToUserActions">Configure response to user actions</string>

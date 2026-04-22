@@ -609,7 +609,6 @@
     <string name="pref_enableGboardCJK">启用CJK Gboard的临时解决方案</string>
     <string name="pref_enableGboardCJK_summary">可能需要安卓14和Gboard 14</string>
 
-    <string name="pref_clipboardEnable">剪贴板共享</string>
     <string name="pref_requestNotificationPermission">申请通知权限</string>
     <string name="pref_xrMode">Meta Oculus XR 模式</string>
     <string name="pref_configureResponseToUserActions">配置对用户操作的响应</string>

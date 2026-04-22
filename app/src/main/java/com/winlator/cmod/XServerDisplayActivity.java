@@ -223,8 +223,10 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
 
         // Check for Dark Mode
         isDarkMode = preferences.getBoolean("dark_mode", false);
-
-
+        boolean isOpenWithAndroidBrowser = preferences.getBoolean("open_with_android_browser", false);
+        boolean isShareAndroidClipboard = preferences.getBoolean("share_android_clipboard", false);
+        if (isOpenWithAndroidBrowser || isShareAndroidClipboard)
+            wineRequestHandler = new WineRequestHandler(this);
 
         // Check if xinputDisabled extra is passed
         boolean xinputDisabledFromShortcut = false;
