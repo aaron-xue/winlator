@@ -13,6 +13,7 @@
     <string name="containers">容器管理</string>
     <string name="input_controls">输入控制</string>
     <string name="no_items_to_display">无项目可显示。</string>
+    <string name="copied_to_clipboard">已复制到剪切板</string>
     <string name="new_container">新容器</string>
     <string name="edit_container">编辑容器</string>
     <string name="creating_container">正在创建容器...</string>

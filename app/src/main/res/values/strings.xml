@@ -13,6 +13,7 @@
     <string name="containers">Containers</string>
     <string name="input_controls">Input Controls</string>
     <string name="no_items_to_display">No items to display</string>
+    <string name="copied_to_clipboard">Copied to clipboard</string>
     <string name="new_container">New Container</string>
     <string name="edit_container">Edit Container</string>
     <string name="creating_container">Creating Container…</string>

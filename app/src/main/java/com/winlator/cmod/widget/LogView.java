@@ -1,16 +1,20 @@
 package com.winlator.cmod.widget;
 
+import android.content.ClipData;
+import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.PointF;
 import android.net.Uri;
-import android.os.Environment;
+import android.os.Handler;
+import android.os.Looper;
 import android.text.format.DateFormat;
 import android.util.AttributeSet;
 import android.view.MotionEvent;
 import android.view.View;
+import android.widget.Toast;
 
 import androidx.annotation.Nullable;
 import androidx.preference.PreferenceManager;
@@ -40,6 +44,12 @@ public class LogView extends View {
     private boolean scrollingHorizontally = false;
     private boolean scrollingVertically = false;
     private final Object lock = new Object();
+    private final Handler longPressHandler = new Handler(Looper.getMainLooper());
+    private Runnable longPressRunnable;
+    private float downX, downY;
+    private int longPressedLineIndex = -1;
+    private static final int LONG_PRESS_TIMEOUT = 500;
+    private static final int LONG_PRESS_TOLERANCE = 20;
 
     public LogView(Context context) {
         this(context, null);
@@ -98,6 +108,11 @@ public class LogView extends View {
 
                 paint.setColor((i % 2) != 0 ? 0xffe1f5fe : 0xffffffff);
                 canvas.drawRect(-scrollPosition.x, rowY, width, rowY + rowHeight, paint);
+
+                if (i == longPressedLineIndex) {
+                    paint.setColor(0x33009688);
+                    canvas.drawRect(-scrollPosition.x, rowY, width, rowY + rowHeight, paint);
+                }
 
                 paint.setColor(0xff212121);
                 float centerY = (rowY - paint.ascent()) + (rowHeight - textHeight) * 0.5f;
@@ -213,15 +228,34 @@ public class LogView extends View {
     public boolean onTouchEvent(MotionEvent event) {
         switch (event.getAction()) {
             case MotionEvent.ACTION_DOWN:
+                downX = event.getX();
+                downY = event.getY();
                 lastPoint.set(event.getX(), event.getY());
                 isActionDown = true;
                 scrollingHorizontally = false;
                 scrollingVertically = false;
+
+                final float downYFinal = event.getY();
+                longPressRunnable = () -> {
+                    if (isActionDown && !scrollingHorizontally && !scrollingVertically) {
+                        int lineIndex = getLineIndexAtY(downYFinal);
+                        if (lineIndex >= 0) {
+                            longPressedLineIndex = lineIndex;
+                            invalidate();
+                            copyLineToClipboard(lineIndex);
+                        }
+                    }
+                };
+                longPressHandler.postDelayed(longPressRunnable, LONG_PRESS_TIMEOUT);
                 break;
             case MotionEvent.ACTION_MOVE:
                 if (isActionDown) {
                     float dx = event.getX() - lastPoint.x;
                     float dy = event.getY() - lastPoint.y;
+
+                    if (Math.abs(event.getX() - downX) > LONG_PRESS_TOLERANCE || Math.abs(event.getY() - downY) > LONG_PRESS_TOLERANCE) {
+                        longPressHandler.removeCallbacks(longPressRunnable);
+                    }
 
                     if (Math.abs(dx) > 10) scrollingHorizontally = true;
                     if (Math.abs(dy) > 10) scrollingVertically = true;
@@ -242,11 +276,39 @@ public class LogView extends View {
                 }
                 break;
             case MotionEvent.ACTION_UP:
+                longPressHandler.removeCallbacks(longPressRunnable);
                 DebugDialog.setPaused(false);
+                isActionDown = false;
+                break;
+            case MotionEvent.ACTION_CANCEL:
+                longPressHandler.removeCallbacks(longPressRunnable);
                 isActionDown = false;
                 break;
         }
 
         return true;
+    }
+
+    private int getLineIndexAtY(float y) {
+        float rowY = -scrollPosition.y;
+        for (int i = 0, count = lines.size(); i < count; i++) {
+            if (y >= rowY && y < rowY + rowHeight) {
+                return i;
+            }
+            rowY += rowHeight;
+        }
+        return -1;
+    }
+
+    private void copyLineToClipboard(int lineIndex) {
+        synchronized (lock) {
+            if (lineIndex >= 0 && lineIndex < lines.size()) {
+                String text = lines.get(lineIndex);
+                ClipboardManager clipboard = (ClipboardManager) getContext().getSystemService(Context.CLIPBOARD_SERVICE);
+                ClipData clip = ClipData.newPlainText("log", text);
+                clipboard.setPrimaryClip(clip);
+                Toast.makeText(getContext(), R.string.copied_to_clipboard, Toast.LENGTH_SHORT).show();
+            }
+        }
     }
 }
