@@ -212,11 +212,14 @@ public abstract class BaseFileManagerFragment<T> extends Fragment {
                 for (File originFile : clipboard.files) {
                     if (originFile.exists()) {
                         File targetFile = new File(clipboard.targetDir, originFile.getName());
-                        // Delete target if it exists (for overwrite)
-                        if (targetFile.exists()) {
-                            FileUtils.delete(targetFile);
+                        if (originFile.isDirectory()) {
+                            // Merge overwrite for directories - recursively overwrite same-named items only
+                            FileUtils.mergeCopy(originFile, targetFile);
+                        } else {
+                            // For files, just overwrite directly
+                            FileUtils.copy(originFile, targetFile);
                         }
-                        if (FileUtils.copy(originFile, targetFile) && clipboard.cutMode) {
+                        if (clipboard.cutMode) {
                             FileUtils.delete(originFile);
                         }
                     }
