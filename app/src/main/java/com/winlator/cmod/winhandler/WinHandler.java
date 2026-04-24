@@ -364,24 +364,30 @@ public class WinHandler {
     }
 
     private Vibrator getVibratorForDevice(Integer deviceId) {
+        // 虚拟手柄或无设备ID时，使用手机默认震动器
+        if (deviceId == null || deviceId == OSC_DEVICE_ID) {
+            return getSystemVibrator();
+        }
+
+        // 尝试获取外接手柄的震动器
+        android.view.InputDevice device = android.view.InputDevice.getDevice(deviceId);
+        if (device == null) {
+            return null;
+        }
+
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S) {
+            VibratorManager deviceVibratorManager = device.getVibratorManager();
+            return deviceVibratorManager != null ? deviceVibratorManager.getDefaultVibrator() : null;
+        } else {
+            return device.getVibrator();
+        }
+    }
+
+    private Vibrator getSystemVibrator() {
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S) {
             VibratorManager vibratorManager = (VibratorManager) activity.getSystemService(Context.VIBRATOR_MANAGER_SERVICE);
-            if (vibratorManager == null) {
-                return null;
-            }
-            if (deviceId != null && deviceId == OSC_DEVICE_ID) {
-                return vibratorManager.getDefaultVibrator();
-            } else if (deviceId != null) {
-                return vibratorManager.getVibrator(deviceId);
-            }
-            return vibratorManager.getDefaultVibrator();
+            return vibratorManager != null ? vibratorManager.getDefaultVibrator() : null;
         } else {
-            if (deviceId != null && deviceId == OSC_DEVICE_ID) {
-                return (Vibrator) activity.getSystemService(Context.VIBRATOR_SERVICE);
-            } else if (deviceId != null) {
-                android.view.InputDevice device = android.view.InputDevice.getDevice(deviceId);
-                return device != null ? device.getVibrator() : null;
-            }
             return (Vibrator) activity.getSystemService(Context.VIBRATOR_SERVICE);
         }
     }
