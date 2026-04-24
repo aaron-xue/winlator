@@ -47,6 +47,8 @@
     <string-array name="dxvk_version_entries">
         <item>1.10.3-arm64ec-async</item>
         <item>1.10.3</item>
+        <item>1.12sarek-dyasync</item>
+        <item>1.12sarek-arm64ec-dyasync</item>
         <item>2.7.1</item>
         <item>2.7.1-arm64ec</item>
         <item>2.7.1-gplasync</item>
@@ -125,9 +127,11 @@
     </string-array>
     <string-array name="box64_version_entries">
         <item>0.4.1</item>
+        <item>0.4.2</item>
     </string-array>
     <string-array name="wowbox64_version_entries">
         <item>0.4.1</item>
+        <item>0.4.2</item>
     </string-array>
     <string-array name="fexcore_version_entries">
         <item>2604</item>

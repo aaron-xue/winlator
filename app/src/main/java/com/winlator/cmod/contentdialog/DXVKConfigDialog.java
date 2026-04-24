@@ -239,7 +239,6 @@ public class DXVKConfigDialog extends ContentDialog {
 
     public static void setEnvVars(Context context, KeyValueSet config, EnvVars envVars) {
         String content = "";
-
         String framerate = config.get("framerate");
 
         if (!framerate.isEmpty() && !framerate.equals("0")) {

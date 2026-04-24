@@ -454,15 +454,17 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
         windowModificationListener = new WindowManager.OnWindowModificationListener() {
             @Override
             public void onUpdateWindowContent(Window window) {
+                // Log.d("XServerDisplayActivity", "onMapWindow: Update window: " + window.getClassName());
                 if (!winStarted[0] && window.isApplicationWindow()) {
                     runOnUiThread(() -> xServerView.getRenderer().setCursorVisible(true));
                     preloaderDialog.closeOnUiThread();
                     winStarted[0] = true;
                 }
                 if(container.isShowFPS()){
-                    if (frameRatingWindowId == window.id) {
-                        runOnUiThread(() -> frameRating.update());
-                    }
+                    runOnUiThread(() -> frameRating.update());
+                    // if (frameRatingWindowId == window.id) {
+                    //     runOnUiThread(() -> frameRating.update());
+                    // }
                 }
             }
 
@@ -479,6 +481,7 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
             @Override
             public void onModifyWindowProperty(Window window, Property property) {
                 assignTaskAffinity(window);
+                // Log.d("XServerDisplayActivity", "onMapWindow: Modify window: " + window.getClassName());
                 if(container.isShowFPS()){
                     if (property.nameAsString().contains("_MESA_DRV_ENGINE_NAME")) {
                         runOnUiThread(() -> frameRating.setRenderer(property.toString()));
@@ -1482,6 +1485,11 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
 
         if (dxwrapper.contains("dxvk")) {
             DXVKConfigDialog.setEnvVars(this, dxwrapperConfig, envVars);
+            String version = dxwrapperConfig.get("version");
+            if (version.contains("sarek")) {
+                Log.d("GraphicsDriverExtraction", "Disabling Wrapper PATCH_OPCONSTCOMP SPIR-V pass");
+                envVars.put("WRAPPER_NO_PATCH_OPCONSTCOMP", "1");
+            }
         }
         else {
             WineD3DConfigDialog.setEnvVars(this, dxwrapperConfig, envVars);
@@ -1513,7 +1521,7 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
 
         String gpuName = graphicsDriverConfig.get("gpuName");
         String dxvkVersion = dxwrapperConfig.get("version");
-        if (!gpuName.equals("Device") && !dxvkVersion.equals("1.11.1-sarek")) {
+        if (!gpuName.equals("Device") && !dxvkVersion.contains("sarek")) {
             envVars.put("WRAPPER_DEVICE_NAME", gpuName);
             envVars.put("WRAPPER_DEVICE_ID", WineD3DConfigDialog.getDeviceIdFromGPUName(this, gpuName));
             envVars.put("WRAPPER_VENDOR_ID", WineD3DConfigDialog.getVendorIdFromGPUName(this, gpuName));
