@@ -471,6 +471,15 @@ public class GuestProgramLauncherComponent extends EnvironmentComponent {
         envVars.putAll(Box64PresetManager.getEnvVars("box64", environment.getContext(), box64Preset));
         envVars.put("BOX64_X11GLX", "1");
         envVars.put("BOX64_NORCFILES", "1");
+        shortcut.getExtra("cpuList", container.getCPUList(true));
+        envVars.put("BOX64_CPULIST", container.getCPUList(true));
+        envVars.put("BOX86_CPULIST", container.getCPUListWoW64(true));
+
+        if (shortcut != null) {
+            String cpuList = shortcut.getExtra("cpuList", container.getCPUList(true));
+            envVars.put("BOX64_CPULIST", cpuList);
+            envVars.put("BOX86_CPULIST", cpuList);
+        }
     }
 
     public void suspendProcess() {

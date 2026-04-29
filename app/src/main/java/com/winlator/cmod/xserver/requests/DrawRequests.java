@@ -12,6 +12,7 @@ import com.winlator.cmod.xserver.errors.BadDrawable;
 import com.winlator.cmod.xserver.errors.BadGraphicsContext;
 import com.winlator.cmod.xserver.errors.BadMatch;
 import com.winlator.cmod.xserver.errors.XRequestError;
+import com.winlator.cmod.xserver.Window;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -62,6 +63,12 @@ public abstract class DrawRequests {
                 else throw new BadMatch();
                 break;
         }
+        Window window =
+            client.xServer.windowManager.getWindow(drawableId);
+        if (window != null) {
+            client.xServer.windowManager.triggerOnFramePresented(window);
+        }
+        client.enforceAbsoluteFramerate();
     }
 
     public static void getImage(XClient client, XInputStream inputStream, XOutputStream outputStream) throws IOException, XRequestError {

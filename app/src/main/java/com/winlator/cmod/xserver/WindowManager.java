@@ -46,6 +46,8 @@ public class WindowManager extends XResourceManager {
         default void onModifyWindowProperty(Window window, Property property) {}
 
         default void onFocusChanged(Window focusedWindow, Window previousFocusedWindow) {}
+
+        default void onFramePresented(Window window) {}
     }
 
     public WindowManager(ScreenInfo screenInfo, DrawableManager drawableManager) {
@@ -59,6 +61,12 @@ public class WindowManager extends XResourceManager {
 
     public Window getWindow(int id) {
         return windows.get(id);
+    }
+
+    public List<Window> getWindows() {
+        ArrayList<Window> list = new ArrayList<>();
+        for (int i = 0; i < windows.size(); i++) list.add(windows.valueAt(i));
+        return list;
     }
 
     public Window findWindowWithProcessId(int processId) {
@@ -354,6 +362,12 @@ public class WindowManager extends XResourceManager {
     private void triggerOnFocusChanged(Window focusedWindow, Window previousFocusedWindow) {
         for (int i = onWindowModificationListeners.size()-1; i >= 0; i--) {
             onWindowModificationListeners.get(i).onFocusChanged(focusedWindow, previousFocusedWindow);
+        }
+    }
+
+    public void triggerOnFramePresented(Window window) {
+        for (int i = onWindowModificationListeners.size() - 1; i >= 0; i--) {
+            onWindowModificationListeners.get(i).onFramePresented(window);
         }
     }
 }

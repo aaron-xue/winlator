@@ -5,6 +5,7 @@ import androidx.collection.ArrayMap;
 import com.winlator.cmod.xconnector.XInputStream;
 import com.winlator.cmod.xconnector.XOutputStream;
 import com.winlator.cmod.xserver.events.Event;
+import com.winlator.cmod.renderer.GLRenderer;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -157,5 +158,11 @@ public class XClient implements XResourceManager.OnResourceLifecycleListener {
 
     public boolean isValidResourceId(int id) {
         return xServer.resourceIDs.isInInterval(id, resourceIDBase);
+    }
+
+    public void enforceAbsoluteFramerate() {
+        GLRenderer renderer = xServer.getRenderer();
+        if (renderer == null) return;
+        renderer.enforceFpsLimit();
     }
 }

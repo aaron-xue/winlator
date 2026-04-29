@@ -237,10 +237,6 @@ public class ShortcutSettingsDialog extends ContentDialog {
         String isTouchScreenMode = shortcut.getExtra("simTouchScreen");
         cbSimTouchScreen.setChecked(isTouchScreenMode.equals("1") ? true : false);
 
-        final CheckBox cbNativeRendering = findViewById(R.id.CBNativeRenderingMode);
-        String isNativeRendering = shortcut.getExtra("nativeRendering","1");
-        cbNativeRendering.setChecked(isNativeRendering.equals("1") ? true : false);
-
         ContainerDetailFragment.createWinComponentsTabFromShortcut(this, getContentView(),
                 shortcut.getExtra("wincomponents", shortcut.container.getWinComponents()), isDarkMode);
 
@@ -360,7 +356,6 @@ public class ShortcutSettingsDialog extends ContentDialog {
 
                 boolean touchscreenMode = cbSimTouchScreen.isChecked();
                 shortcut.putExtra("simTouchScreen", touchscreenMode ? "1" : "0");
-                shortcut.putExtra("nativeRendering", cbNativeRendering.isChecked() ? "1" : "0");
 
                 String execArgs = etExecArgs.getText().toString();
                 shortcut.putExtra("execArgs", !execArgs.isEmpty() ? execArgs : null);

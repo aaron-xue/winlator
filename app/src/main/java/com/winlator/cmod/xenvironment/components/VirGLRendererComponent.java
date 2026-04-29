@@ -108,7 +108,7 @@ public class VirGLRendererComponent extends EnvironmentComponent implements Conn
                 Log.e("VirGLRendererComponent", "Framebuffer is invalid for drawableId=" + drawableId);
                 return;
             }
-
+            drawable.clearScanoutSource();
             Texture texture = drawable.getTexture();
             if (texture == null) {
                 Log.e("VirGLRendererComponent", "Texture is null for drawableId=" + drawableId);

@@ -158,8 +158,8 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
     private float globalCursorSpeed = 1.0f;
     private MagnifierView magnifierView;
     private DebugDialog debugDialog;
-    private short taskAffinityMask = 0;
-    private short taskAffinityMaskWoW64 = 0;
+    private int taskAffinityMask = 0;
+    private int taskAffinityMaskWoW64 = 0;
     private int frameRatingWindowId = -1;
     private boolean cursorLock; // Flag to track if pointer capture was requested
     private final float[] xform = XForm.getInstance();
@@ -196,6 +196,7 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
     private GuestProgramLauncherComponent guestProgramLauncherComponent;
     private EnvVars overrideEnvVars;
     private WindowManager.OnWindowModificationListener windowModificationListener;
+    private boolean isNativeRenderingEnabled = true;
 
     @Override
     public void onConfigurationChanged(@NonNull Configuration newConfig) {
@@ -218,6 +219,7 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
 
         preloaderDialog = new PreloaderDialog(this);
         preferences = PreferenceManager.getDefaultSharedPreferences(this);
+        isNativeRenderingEnabled = preferences.getBoolean("use_dri3", true);
 
         cursorLock = preferences.getBoolean("cursor_lock", true);
 
@@ -363,11 +365,11 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
             shortcut = new Shortcut(container, new File(shortcutPath));
         }
 
-        taskAffinityMask = (short) ProcessHelper.getAffinityMask(container.getCPUList(true));
-        taskAffinityMaskWoW64 = (short) ProcessHelper.getAffinityMask(container.getCPUListWoW64(true));
+        taskAffinityMask = ProcessHelper.getAffinityMask(container.getCPUList(true));
+        taskAffinityMaskWoW64 = ProcessHelper.getAffinityMask(container.getCPUListWoW64(true));
 
         if (shortcut != null) {
-            taskAffinityMask = (short) ProcessHelper.getAffinityMask(shortcut.getExtra("cpuList", container.getCPUList(true)));
+            taskAffinityMask = ProcessHelper.getAffinityMask(shortcut.getExtra("cpuList", container.getCPUList(true)));
             taskAffinityMaskWoW64 = taskAffinityMask;
         }
 
@@ -445,7 +447,7 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
         preloaderDialog.show(R.string.starting_up);
 
         inputControlsManager = new InputControlsManager(this);
-        xServer = new XServer(new ScreenInfo(screenSize));
+        xServer = new XServer(new ScreenInfo(screenSize), isNativeRenderingEnabled);
         xServer.setWinHandler(winHandler);
 
         boolean[] winStarted = {false};
@@ -1160,8 +1162,7 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
 
         if (shortcut != null) {
             renderer.setUnviewableWMClasses("explorer.exe");
-            boolean isNative = shortcut.getExtra("nativeRendering","1").equals("1");
-            renderer.setNativeMode(isNative);
+            renderer.setNativeMode(isNativeRenderingEnabled);
         }
         xServer.setRenderer(renderer);
         rootView.addView(xServerView);
@@ -1495,9 +1496,10 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
             WineD3DConfigDialog.setEnvVars(this, dxwrapperConfig, envVars);
         }
 
-        boolean useDRI3 = preferences.getBoolean("use_dri3", true);
-        if (!useDRI3) {
-            envVars.put("MESA_VK_WSI_DEBUG", "sw");
+        ArrayList<String> wsiDebugFlags = new ArrayList<>();
+        if (!isNativeRenderingEnabled) {
+            wsiDebugFlags.add("sw");
+            envVars.put("LIBGL_DRI3_DISABLE", "1");
         }
 
         envVars.put("VK_ICD_FILENAMES", imageFs.getShareDir() + "/vulkan/icd.d/wrapper_icd.aarch64.json");
@@ -1541,8 +1543,13 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
         envVars.put("WRAPPER_RESOURCE_TYPE", resourceType);
 
         String syncFrame = graphicsDriverConfig.get("syncFrame");
-        if (syncFrame.equals("1"))
-            envVars.put("MESA_VK_WSI_DEBUG", "forcesync");
+        if (syncFrame.equals("1")){
+            wsiDebugFlags.add("forcesync");
+        }
+
+        if (!wsiDebugFlags.isEmpty()) {
+            envVars.put("MESA_VK_WSI_DEBUG", String.join(",", wsiDebugFlags));
+        }
 
         String disablePresentWait = graphicsDriverConfig.get("disablePresentWait");
         envVars.put("WRAPPER_DISABLE_PRESENT_WAIT", disablePresentWait);
