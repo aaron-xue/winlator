@@ -1,7 +1,11 @@
 package com.winlator.cmod.alsaserver;
 
+import android.content.Context;
+import android.media.AudioFormat;
+import android.media.AudioManager;
+import android.media.AudioTrack;
+import com.winlator.cmod.core.EnvVars;
 import com.winlator.cmod.sysvshm.SysVSharedMemory;
-
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
@@ -17,83 +21,208 @@ public class ALSAClient {
     private DataType dataType = DataType.U8;
     private byte channelCount = 2;
     private int sampleRate = 0;
-    private int position;
+    private int positionFrames;
     private int bufferSize;
     private int frameBytes;
     private ByteBuffer sharedBuffer;
-    private boolean playing = false;
-    private long streamPtr = 0;
+    private ByteBuffer auxBuffer;
+    private AudioTrack audioTrack;
+    private int bufferCapacityFrames;
+    private int previousUnderrunCount = 0;
+    private static short framesPerBuffer = 256;
+    private final Options options;
 
-    static {
-        System.loadLibrary("winlator");
+    public static class Options {
+        public static final int DEFAULT_LATENCY_MILLIS = 16;
+        public static final float DEFAULT_VOLUME = 1.0f;
+
+        public int latencyMillis = DEFAULT_LATENCY_MILLIS;
+        public int performanceMode = AudioTrack.PERFORMANCE_MODE_LOW_LATENCY;
+        public float volume = DEFAULT_VOLUME;
+
+        public static Options fromEnvVars(EnvVars envVars) {
+            Options options = new Options();
+            if (envVars == null) return options;
+
+            options.latencyMillis =
+                parseInt(
+                    firstNonEmpty(envVars.get("ANDROID_ALSA_LATENCY_MS"), envVars.get("WINNATIVE_ALSA_LATENCY_MS")),
+                    DEFAULT_LATENCY_MILLIS);
+            options.latencyMillis = Math.max(0, options.latencyMillis);
+
+            options.volume =
+                parseFloat(
+                    firstNonEmpty(envVars.get("ANDROID_ALSA_VOLUME"), envVars.get("WINNATIVE_ALSA_VOLUME")),
+                    DEFAULT_VOLUME);
+            options.volume = Math.max(0.0f, Math.min(options.volume, 1.0f));
+
+            String performanceMode =
+                firstNonEmpty(
+                    envVars.get("ANDROID_ALSA_PERFORMANCE_MODE"), envVars.get("WINNATIVE_ALSA_PERFORMANCE_MODE"));
+            if (performanceMode.equalsIgnoreCase("none") || performanceMode.equals("0")) {
+                options.performanceMode = AudioTrack.PERFORMANCE_MODE_NONE;
+            } else if (performanceMode.equalsIgnoreCase("power_saving") || performanceMode.equals("2")) {
+                options.performanceMode = AudioTrack.PERFORMANCE_MODE_POWER_SAVING;
+            } else {
+                options.performanceMode = AudioTrack.PERFORMANCE_MODE_LOW_LATENCY;
+            }
+
+            return options;
+        }
+
+        private static String firstNonEmpty(String first, String second) {
+            return first != null && !first.isEmpty() ? first : (second != null ? second : "");
+        }
+
+        private static int parseInt(String value, int fallback) {
+        try {
+            if (value != null && !value.isEmpty()) return Integer.parseInt(value);
+        } catch (NumberFormatException ignored) {
+        }
+            return fallback;
+        }
+
+        private static float parseFloat(String value, float fallback) {
+        try {
+            if (value != null && !value.isEmpty()) return Float.parseFloat(value);
+        } catch (NumberFormatException ignored) {
+        }
+        return fallback;
+        }
     }
 
-    public void release() {
+    public ALSAClient() {
+        this(new Options());
+    }
+
+    public ALSAClient(Options options) {
+        this.options = options != null ? options : new Options();
+    }
+
+    public synchronized void release() {
         if (sharedBuffer != null) {
             SysVSharedMemory.unmapSHMSegment(sharedBuffer, sharedBuffer.capacity());
             sharedBuffer = null;
         }
+        auxBuffer = null;
 
-        stop(streamPtr);
-        close(streamPtr);
-        playing = false;
-        streamPtr = 0;
+        AudioTrack track = audioTrack;
+        audioTrack = null;
+        if (track != null) {
+            try {
+                track.pause();
+            } catch (Exception ignored) {
+            }
+            try {
+                track.flush();
+            } catch (Exception ignored) {
+            }
+            try {
+                track.release();
+            } catch (Exception ignored) {
+            }
+        }
     }
 
-    public void prepare() {
-        position = 0;
+    public synchronized void prepare() {
+        positionFrames = 0;
+        previousUnderrunCount = 0;
         frameBytes = channelCount * dataType.byteCount;
         release();
 
         if (!isValidBufferSize()) return;
 
-        streamPtr = create(dataType.ordinal(), channelCount, sampleRate, bufferSize);
-        if (streamPtr > 0) start();
-    }
+        AudioFormat format =
+            new AudioFormat.Builder()
+                .setEncoding(getPCMEncoding(dataType))
+                .setSampleRate(sampleRate)
+                .setChannelMask(getChannelConfig(channelCount))
+                .build();
 
-    public void start() {
-        if (streamPtr > 0 && !playing) {
-            start(streamPtr);
-            playing = true;
+        try {
+            int audioTrackBufferSize = getAudioTrackBufferSizeInBytes();
+            audioTrack =
+                new AudioTrack.Builder()
+                    .setPerformanceMode(options.performanceMode)
+                    .setAudioFormat(format)
+                    .setBufferSizeInBytes(audioTrackBufferSize)
+                    .build();
+            bufferCapacityFrames = audioTrack.getBufferCapacityInFrames();
+            if (options.volume != Options.DEFAULT_VOLUME) audioTrack.setVolume(options.volume);
+            audioTrack.play();
+        } catch (Exception e) {
+            release();
         }
     }
 
-    public void stop() {
-        if (streamPtr > 0 && playing) {
-            stop(streamPtr);
-            playing = false;
+    public synchronized void start() {
+        if (audioTrack != null && audioTrack.getPlayState() != AudioTrack.PLAYSTATE_PLAYING) {
+            try {
+                audioTrack.play();
+            } catch (Exception ignored) {
+            }
         }
     }
 
-    public void pause() {
-        if (streamPtr > 0) {
-            pause(streamPtr);
-            playing = false;
+    public synchronized void stop() {
+        if (audioTrack != null) {
+            try {
+                audioTrack.stop();
+            } catch (Exception ignored) {
+            }
+            try {
+                audioTrack.flush();
+            } catch (Exception ignored) {
+            }
         }
     }
 
-    public void drain() {
-        if (streamPtr > 0) flush(streamPtr);
+    public synchronized void pause() {
+        if (audioTrack != null) {
+            try {
+                audioTrack.pause();
+            } catch (Exception ignored) {
+            }
+        }
     }
 
-    public void writeDataToStream(ByteBuffer data) {
+    public synchronized void drain() {
+        if (audioTrack != null) {
+            try {
+                audioTrack.flush();
+            } catch (Exception ignored) {
+            }
+        }
+    }
+
+     public synchronized void writeDataToStream(ByteBuffer data) {
         if (dataType == DataType.S16LE || dataType == DataType.FLOATLE) {
             data.order(ByteOrder.LITTLE_ENDIAN);
-        }
-        else if (dataType == DataType.S16BE || dataType == DataType.FLOATBE) {
+        } else if (dataType == DataType.S16BE || dataType == DataType.FLOATBE) {
             data.order(ByteOrder.BIG_ENDIAN);
         }
 
-        if (playing) {
-            int numFrames = data.limit() / frameBytes;
-            int framesWritten = write(streamPtr, data, numFrames);
-            if (framesWritten > 0) position += framesWritten;
+        if (audioTrack != null) {
+            data.position(0);
+
+            while (data.position() != data.limit()) {
+                int bytesWritten;
+                try {
+                    bytesWritten = audioTrack.write(data, data.remaining(), AudioTrack.WRITE_BLOCKING);
+                } catch (Exception e) {
+                break;
+                }
+                if (bytesWritten <= 0) break;
+
+                positionFrames += bytesWritten / frameBytes;
+                increaseBufferSizeIfUnderrunOccurs();
+            }
             data.rewind();
         }
     }
 
     public int pointer() {
-        return position;
+        return positionFrames;
     }
 
     public void setDataType(DataType dataType) {
@@ -116,8 +245,18 @@ public class ALSAClient {
         return sharedBuffer;
     }
 
+    public ByteBuffer getAuxBuffer() {
+        return auxBuffer;
+    }
+
     public void setSharedBuffer(ByteBuffer sharedBuffer) {
-        this.sharedBuffer = sharedBuffer;
+        if (sharedBuffer != null) {
+            auxBuffer = ByteBuffer.allocateDirect(getBufferSizeInBytes()).order(ByteOrder.LITTLE_ENDIAN);
+            this.sharedBuffer = sharedBuffer.order(ByteOrder.LITTLE_ENDIAN);
+        } else {
+            auxBuffer = null;
+            this.sharedBuffer = null;
+        }
     }
 
     public DataType getDataType() {
@@ -148,17 +287,54 @@ public class ALSAClient {
         return (int)(((float)bufferSize / sampleRate) * 1000);
     }
 
-    private native long create(int format, byte channelCount, int sampleRate, int bufferSize);
+    private int getAudioTrackBufferSizeInBytes() {
+        if (options.latencyMillis <= 0 || sampleRate <= 0) return getBufferSizeInBytes();
+        int latencyFrames = (int) Math.ceil((options.latencyMillis * sampleRate) / 1000.0);
+        latencyFrames = roundUpToFramesPerBuffer(latencyFrames);
+        return Math.max(bufferSize, latencyFrames) * frameBytes;
+    }
 
-    private native int write(long streamPtr, ByteBuffer buffer, int numFrames);
+    private static int roundUpToFramesPerBuffer(int frames) {
+        int quantum = Math.max(1, framesPerBuffer);
+        return ((frames + quantum - 1) / quantum) * quantum;
+    }
 
-    private native void start(long streamPtr);
+    private void increaseBufferSizeIfUnderrunOccurs() {
+        if (audioTrack == null) return;
+        int underrunCount = audioTrack.getUnderrunCount();
+        if (underrunCount > previousUnderrunCount && bufferSize < bufferCapacityFrames) {
+            previousUnderrunCount = underrunCount;
+            bufferSize = Math.min(bufferSize + framesPerBuffer, bufferCapacityFrames);
+            audioTrack.setBufferSizeInFrames(bufferSize);
+        }
+    }
 
-    private native void stop(long streamPtr);
+    private static int getPCMEncoding(DataType dataType) {
+        switch (dataType) {
+            case U8:
+                return AudioFormat.ENCODING_PCM_8BIT;
+            case FLOATLE:
+            case FLOATBE:
+                return AudioFormat.ENCODING_PCM_FLOAT;
+            case S16LE:
+            case S16BE:
+            default:
+                return AudioFormat.ENCODING_PCM_16BIT;
+        }
+    }
 
-    private native void pause(long streamPtr);
+    private static int getChannelConfig(int channelCount) {
+        return channelCount <= 1 ? AudioFormat.CHANNEL_OUT_MONO : AudioFormat.CHANNEL_OUT_STEREO;
+    }
 
-    private native void flush(long streamPtr);
-
-    private native void close(long streamPtr);
+    public static void assignFramesPerBuffer(Context context) {
+        try {
+            AudioManager audioManager = (AudioManager) context.getSystemService(Context.AUDIO_SERVICE);
+            String value = audioManager.getProperty(AudioManager.PROPERTY_OUTPUT_FRAMES_PER_BUFFER);
+            framesPerBuffer = Short.parseShort(value);
+            if (framesPerBuffer == 0) framesPerBuffer = 256;
+        } catch (Exception e) {
+            framesPerBuffer = 256;
+        }
+    }
 }

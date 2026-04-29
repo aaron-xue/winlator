@@ -4,10 +4,20 @@ import com.winlator.cmod.xconnector.Client;
 import com.winlator.cmod.xconnector.ConnectionHandler;
 
 public class ALSAClientConnectionHandler implements ConnectionHandler {
+    private final ALSAClient.Options options;
+
+    public ALSAClientConnectionHandler() {
+        this(new ALSAClient.Options());
+    }
+
+    public ALSAClientConnectionHandler(ALSAClient.Options options) {
+        this.options = options != null ? options : new ALSAClient.Options();
+    }
+
     @Override
     public void handleNewConnection(Client client) {
         client.createIOStreams();
-        client.setTag(new ALSAClient());
+        client.setTag(new ALSAClient(options));
     }
 
     @Override
