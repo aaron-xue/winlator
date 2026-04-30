@@ -52,7 +52,8 @@ public class DebugDialog extends ContentDialog implements Callback<String> {
     }
 
     @Override
-    public void call(final String line) {
+    public synchronized void call(final String line) {
+        if (writer == null) return;
         if (!getPaused()) logView.append(line+"\n");
         try {
             writer.write(line + "\n");
@@ -60,6 +61,16 @@ public class DebugDialog extends ContentDialog implements Callback<String> {
         }
         catch (IOException e) {
             throw new RuntimeException(e);
+        }
+    }
+
+    public synchronized void dispose() {
+        if (writer == null) return;
+        try {
+            writer.close();
+        } catch (IOException ignored) {
+        } finally {
+            writer = null;
         }
     }
     

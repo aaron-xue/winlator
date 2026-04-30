@@ -118,6 +118,7 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -217,7 +218,6 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
         AppUtils.keepScreenOn(this);
         setContentView(R.layout.xserver_display_activity);
         startService(new Intent(this, ForegroundService.class));
-
         preloaderDialog = new PreloaderDialog(this);
         preferences = PreferenceManager.getDefaultSharedPreferences(this);
         isNativeRenderingEnabled = preferences.getBoolean("use_dri3", true);
@@ -1502,8 +1502,9 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
         if (!isNativeRenderingEnabled) {
             wsiDebugFlags.add("sw");
             envVars.put("LIBGL_DRI3_DISABLE", "1");
+        }else{
+            envVars.put("MESA_VK_WSI_USE_HWBUF", "1");
         }
-
         envVars.put("VK_ICD_FILENAMES", imageFs.getShareDir() + "/vulkan/icd.d/wrapper_icd.aarch64.json");
         envVars.put("GALLIUM_DRIVER", "zink");
 
@@ -1910,10 +1911,12 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
     }
 
     private void assignTaskAffinity(Window window) {
-        if (taskAffinityMask == 0 || taskAffinityMaskWoW64 == 0) return;
+        if (taskAffinityMask == 0 && taskAffinityMaskWoW64 == 0) return;
         int processId = window.getProcessId();
         String className = window.getClassName();
         int processAffinity = window.isWoW64() ? taskAffinityMaskWoW64 : taskAffinityMask;
+
+        if (processAffinity == 0) return;
 
         if (processId > 0) {
             winHandler.setProcessAffinity(processId, processAffinity);
